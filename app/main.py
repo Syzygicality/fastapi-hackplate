@@ -1,5 +1,3 @@
-from fastapi import FastAPI
+from app.lifespan import lifespan, Hackplate
 
-from app.lifespan import lifespan
-
-app = FastAPI(lifespan=lifespan)
+app = Hackplate(lifespan=lifespan)

@@ -1,22 +1,45 @@
-import sqlite3
+import aiosqlite
+import logging
 from pathlib import Path
+from pydantic_settings import BaseSettings
+
+from app.db.abstract_plate import DatabasePlate
+
+logger = logging.getLogger(__name__)
 
 
-class SQLiteConfig:
-    def __init__(self, path: str = "db.sqlite3"):
-        self.path = Path(path)
-        self.conn: sqlite3.Connection | None = None
+class SQLiteConfig(BaseSettings):
+    db_path: str = "db.sqlite3"
 
-    def connect(self) -> None:
-        self.conn = sqlite3.connect(self.path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
 
-    def disconnect(self) -> None:
+class SQLitePlate(DatabasePlate):
+    def __init__(self):
+        self.config = SQLiteConfig()
+        self.conn: aiosqlite.Connection | None = None
+
+    async def connect(self) -> None:
+        logger.info("Connecting to sqlite file...")
+        resolved = str(Path(self.config.db_path).resolve())
+        self.conn = await aiosqlite.connect(resolved)
+        self.conn.row_factory = aiosqlite.Row
+
+    async def disconnect(self) -> None:
         if self.conn:
-            self.conn.close()
+            logger.info("Disconnecting from sqlite file...")
+            await self.conn.close()
             self.conn = None
 
-    def cursor(self) -> sqlite3.Cursor:
+    async def ping(self) -> bool:
         if self.conn is None:
-            raise RuntimeError("SQLiteDB is not connected")
-        return self.conn.cursor()
+            logger.warning("Ping failed, connection is None")
+            return False
+        try:
+            await self.conn.execute("SELECT 1")
+            logger.info("PONG")
+            return True
+        except Exception:
+            logger.exception("Ping failed")
+            return False
+
+    async def get_session(self):
+        return self.conn
