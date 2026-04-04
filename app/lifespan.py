@@ -1,18 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
 from collections.abc import AsyncGenerator
-from starlette.datastructures import State
 
-from app.config.config import BackendConfig
+from app.config.config import BackendConfig, Hackplate
 from app.config.logging import setup_logging
-
-
-class AppState(State):
-    config: BackendConfig
-
-
-class Hackplate(FastAPI):
-    state: AppState
 
 
 @asynccontextmanager

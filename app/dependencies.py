@@ -1,10 +1,4 @@
-from fastapi import Request
-
-from lifespan import Hackplate
-
-
-class HackplateRequest(Request):
-    app: Hackplate
+from app.config.config import HackplateRequest
 
 
 def get_session(request: HackplateRequest):
