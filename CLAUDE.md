@@ -10,7 +10,7 @@ FastAPI hackathon template for rapid prototyping. Supports multiple auth backend
 
 - Python 3.13+, managed with `uv`
 - Install deps: `uv sync`
-- Run dev server: `uv run fastapi dev app/main.py`
+- Run dev server: `inv run`
 - Uses `docker-compose.yml` for local infrastructure (databases, etc.)
 
 ## Code Style
