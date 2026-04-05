@@ -1,4 +1,3 @@
-# app/config/logging.py
 import logging.config
 
 LOGGING_CONFIG = {

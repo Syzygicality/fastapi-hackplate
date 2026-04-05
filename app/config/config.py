@@ -1,5 +1,3 @@
-from fastapi import FastAPI, Request
-from starlette.datastructures import State
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator
 from typing import Self
@@ -47,17 +45,6 @@ class BackendConfig:
 
         self.db: DatabasePlate = database_plates[config.db]()
         self.db_name = config.db
+
         self.auth: AuthPlate = auth_plates[config.auth]()
         self.auth_name = config.auth
-
-
-class AppState(State):
-    config: BackendConfig
-
-
-class Hackplate(FastAPI):
-    state: AppState
-
-
-class HackplateRequest(Request):
-    app: Hackplate
