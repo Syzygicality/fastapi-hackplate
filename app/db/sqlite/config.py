@@ -8,13 +8,13 @@ from app.db.abstract_plate import DatabasePlate
 logger = logging.getLogger(__name__)
 
 
-class SQLiteConfig(BaseSettings):
+class SQLiteSettings(BaseSettings):
     db_path: str = "db.sqlite3"
 
 
 class SQLitePlate(DatabasePlate):
     def __init__(self):
-        self.config = SQLiteConfig()
+        self.config = SQLiteSettings()
         self.conn: aiosqlite.Connection | None = None
 
     async def connect(self) -> None:
