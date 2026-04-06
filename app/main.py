@@ -1,6 +1,14 @@
 from app.hackplate.types import Hackplate
-from app.lifespan import lifespan
+from app.hackplate.lifespan import hackplate_lifespan
 from app.hackplate.exceptions import register_exception_handlers
 
-app = Hackplate(lifespan=lifespan)
+
+def register_routes(app: Hackplate) -> None:
+    pass
+
+
+app = Hackplate(lifespan=hackplate_lifespan)
+
+
+register_routes(app)
 register_exception_handlers(app)
