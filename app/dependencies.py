@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.types import HackplateRequest
+from app.hackplate.types import HackplateRequest
 
 
 def get_session(request: HackplateRequest) -> AsyncSession:

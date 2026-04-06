@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from app.config.config import BackendConfig
-from app.config.logging import setup_logging
-from app.types import Hackplate
+from app.hackplate.config import BackendConfig
+from app.hackplate.logging import setup_logging
+from app.hackplate.types import Hackplate
 
 
 @asynccontextmanager
