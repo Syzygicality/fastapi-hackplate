@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager, AsyncExitStack
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 
 from app.hackplate.config import BackendConfig
+from app.hackplate.exceptions import register_exception_handlers
 from app.hackplate.logging import setup_logging
 from app.hackplate.types import Hackplate
 from app.lifespan import lifespan
@@ -23,3 +24,12 @@ async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
         await stack.enter_async_context(config_lifespan(app))
         await stack.enter_async_context(lifespan(app))
         yield
+
+
+def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
+    register_exception_handlers(app)
+    for fn in register_functions:
+        try:
+            fn(app)
+        except Exception as e:
+            raise RuntimeError(f"Failed to register {fn.__name__}") from e

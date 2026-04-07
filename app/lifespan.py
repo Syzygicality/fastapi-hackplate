@@ -6,4 +6,10 @@ from app.hackplate.types import Hackplate
 
 @asynccontextmanager
 async def lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+    """
+    Lifespan handler designated for user modification.
+
+    Args:
+        app: initialized Hackplate object originating from main.py
+    """
     yield
