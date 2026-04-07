@@ -4,7 +4,7 @@ Guidelines for Claude Code when working in this repository.
 
 ## Project Overview
 
-FastAPI hackathon template for rapid prototyping. Supports multiple auth backends (Auth0, Keycloak, local) and multiple databases (Mongo, Postgres, SQLite).
+FastAPI hackathon template for rapid prototyping. Supports multiple auth backends (Auth0, Keycloak, local) and database connections (Mongo, Postgres, SQLite).
 
 ## Dev Environment
 
@@ -15,16 +15,13 @@ FastAPI hackathon template for rapid prototyping. Supports multiple auth backend
 
 ## Code Style
 
-- Follow existing patterns in each module — don't introduce new conventions without reason
-- Keep route handlers thin; push logic into service/utility layers
-- Config lives in `app/config/config.py` — extend it there, not inline
+- Utilize `tasks.py`'s defined invoke commands.
+- Plate usage is dictated by `.env` variables, customize there.
+- Do not modify any code within /hackplate unless necessary.
+- Respect documentation (.md files, docstrings) within /hackplate.
+- Implement features via feature-based file structure within /app.
+- Run `inv run`, `pytest`, and `inv precommit` before finishing. Resolve any errors which appear.
 
 ## Testing
 
-- (Tests not yet configured — add guidance here when set up)
-
-## Common Tasks
-
-- Add a new route: create a router module, mount it in `app/main.py`
-- Add a new auth backend: follow the pattern in `app/auth/`
-- Add a new DB backend: follow the pattern in `app/db/`
+- in /tests, write light API testing pytests after implementing new features to pin down feature functionality
