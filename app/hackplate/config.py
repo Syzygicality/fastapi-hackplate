@@ -3,19 +3,22 @@ from pydantic import model_validator
 from typing import Self
 
 from app.hackplate.plates.db_plates.sqlite.config import SQLitePlate
+from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
 
-database_plates = {"sqlite": SQLitePlate, "postgres": None, "mongo": None}
+database_plates = {"sqlite": SQLitePlate, "postgres": PostgresPlate, "mongo": None}
 
 auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
 
 
 class BackendSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="HACKPLATE_")
+    model_config = SettingsConfigDict(
+        env_prefix="HACKPLATE_", env_file=".env", extra="ignore"
+    )
 
-    db: str = "sqlite"
-    auth: str = "local"
+    db: str | None = "sqlite"
+    auth: str | None = "local"
 
     @model_validator(mode="after")
     def validate_plates(self) -> Self:

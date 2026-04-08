@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class SQLiteSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="SQLITE_", env_file=".env", extra="ignore"
+    )
+
     db_path: str = "db.sqlite3"
 
 
