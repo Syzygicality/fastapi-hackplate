@@ -16,13 +16,13 @@ class SQLiteSettings(BaseSettings):
 
 class SQLitePlate(DatabasePlate):
     def __init__(self):
-        self.config = SQLiteSettings()
+        self.settings = SQLiteSettings()
         self.engine = None
         self._session_factory: async_sessionmaker[AsyncSession] | None = None
 
     async def connect(self) -> None:
         logger.info("Connecting to sqlite file...")
-        resolved = str(Path(self.config.db_path).resolve())
+        resolved = str(Path(self.settings.db_path).resolve())
         self.engine = create_async_engine(f"sqlite+aiosqlite:///{resolved}")
         self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
 
