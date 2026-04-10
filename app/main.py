@@ -1,4 +1,4 @@
-from app.hackplate.types import Hackplate
+from app.hackplate.hackplate_types import Hackplate
 from app.hackplate.lifespan import hackplate_lifespan, configure
 
 

@@ -2,9 +2,10 @@ from contextlib import asynccontextmanager, AsyncExitStack
 from collections.abc import AsyncGenerator, Callable
 
 from app.hackplate.config import BackendConfig
+from app.hackplate.cors import register_cors_middleware
 from app.hackplate.exceptions import register_exception_handlers
 from app.hackplate.logging import setup_logging
-from app.hackplate.types import Hackplate
+from app.hackplate.hackplate_types import Hackplate
 from app.lifespan import lifespan
 
 
@@ -41,6 +42,7 @@ def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
         register_functions: list of functions with a single `app: Hackplate` param
     """
     register_exception_handlers(app)
+    register_cors_middleware(app)
     for fn in register_functions:
         try:
             fn(app)
