@@ -20,10 +20,11 @@ class CORSSettings(BaseSettings):
 
 
 def register_cors_middleware(app: Hackplate) -> None:
+    cors = CORSSettings()
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=app.state.config.cors_settings.allow_origins,
-        allow_credentials=app.state.config.cors_settings.allow_credentials,
-        allow_methods=app.state.config.cors_settings.allow_methods,
-        allow_headers=app.state.config.cors_settings.allow_headers,
+        allow_origins=cors.allow_origins,
+        allow_credentials=cors.allow_credentials,
+        allow_methods=cors.allow_methods,
+        allow_headers=cors.allow_headers,
     )

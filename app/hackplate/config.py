@@ -6,7 +6,6 @@ from app.hackplate.plates.db_plates.sqlite.config import SQLitePlate
 from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
-from app.hackplate.cors import CORSSettings
 
 database_plates = {"sqlite": SQLitePlate, "postgres": PostgresPlate, "mongo": None}
 
@@ -62,5 +61,3 @@ class BackendConfig:
 
         self.auth: AuthPlate = auth_plates[config.auth]()
         self.auth_name = config.auth
-
-        self.cors_settings = CORSSettings()
