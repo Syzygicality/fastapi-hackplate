@@ -14,6 +14,8 @@ class PostgresSettings(BaseSettings):
         env_prefix="POSTGRES_", env_file=".env", extra="ignore"
     )
 
+    url: str | None = None
+
     name: str
     username: str
     password: str
@@ -32,6 +34,8 @@ class PostgresPlate(DatabasePlate):
         s = self.settings
         url = (
             f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
+            if not self.settings.url
+            else self.settings.url
         )
         self.engine = create_async_engine(url)
         self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
