@@ -13,6 +13,10 @@ auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
 
 
 class BackendSettings(BaseSettings):
+    """
+    Pulls hackplate's configured authentication and database plates from .env
+    """
+
     model_config = SettingsConfigDict(
         env_prefix="HACKPLATE_", env_file=".env", extra="ignore"
     )
@@ -22,6 +26,9 @@ class BackendSettings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_plates(self) -> Self:
+        """
+        Validates .env variables to ensure that they align with usable plates
+        """
         if self.db not in database_plates:
             raise ValueError(
                 f"Database plate {self.db} defined in .env is not a valid plate."
@@ -42,6 +49,10 @@ class BackendSettings(BaseSettings):
 
 
 class BackendConfig:
+    """
+    Centralizes hackplate's configured authentication and database plates
+    """
+
     def __init__(self):
         config = BackendSettings()
 

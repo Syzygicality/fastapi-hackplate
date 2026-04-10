@@ -20,6 +20,12 @@ async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 
 @asynccontextmanager
 async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+    """
+    Main lifespan handler for hackplate
+
+    Args:
+        app: initialized Hackplate object originating from main.py
+    """
     async with AsyncExitStack() as stack:
         await stack.enter_async_context(config_lifespan(app))
         await stack.enter_async_context(lifespan(app))
@@ -27,6 +33,13 @@ async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 
 
 def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
+    """
+    Centralizes app configuration logic
+
+    Args:
+        app: initialized Hackplate object originating from main.py
+        register_functions: list of functions with a single `app: Hackplate` param
+    """
     register_exception_handlers(app)
     for fn in register_functions:
         try:

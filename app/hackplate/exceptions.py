@@ -1,14 +1,16 @@
 import logging
-from fastapi import FastAPI, Request, status
+from fastapi import status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.hackplate.types import Hackplate, HackplateRequest
 
 logger = logging.getLogger(__name__)
 
 
 async def http_exception_handler(
-    request: Request, exc: StarletteHTTPException
+    request: HackplateRequest, exc: StarletteHTTPException
 ) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
@@ -17,7 +19,7 @@ async def http_exception_handler(
 
 
 async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
+    request: HackplateRequest, exc: RequestValidationError
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -25,7 +27,9 @@ async def validation_exception_handler(
     )
 
 
-async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def unhandled_exception_handler(
+    request: HackplateRequest, exc: Exception
+) -> JSONResponse:
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -33,7 +37,13 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     )
 
 
-def register_exception_handlers(app: FastAPI) -> None:
+def register_exception_handlers(app: Hackplate) -> None:
+    """
+    Registers hackplate's default global exception handlers
+
+    Args:
+        app: initialized Hackplate object originating from main.py
+    """
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)

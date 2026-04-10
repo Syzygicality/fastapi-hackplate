@@ -22,4 +22,7 @@ LOGGING_CONFIG = {
 
 
 def setup_logging() -> None:
+    """
+    sets up global logging configuration and formatting
+    """
     logging.config.dictConfig(LOGGING_CONFIG)
