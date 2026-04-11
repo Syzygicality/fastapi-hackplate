@@ -4,10 +4,15 @@ from typing import Self
 
 from app.hackplate.plates.db_plates.sqlite.config import SQLitePlate
 from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
+from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
 
-database_plates = {"sqlite": SQLitePlate, "postgres": PostgresPlate, "mongo": None}
+database_plates = {
+    "sqlite": SQLitePlate,
+    "postgres": PostgresPlate,
+    "mongo": MongoPlate,
+}
 
 auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
 

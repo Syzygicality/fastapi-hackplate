@@ -17,4 +17,5 @@ dependencies = [
     "sqlmodel>=0.0.38",
     "uvicorn>=0.43.0",
     "asyncpg>=0.31.0",
+    "motor>=3.7.1",
 ]

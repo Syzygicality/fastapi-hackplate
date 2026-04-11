@@ -21,7 +21,7 @@ FastAPI hackathon template for rapid prototyping. Supports multiple auth backend
 - Do not modify any code within /app/hackplate unless necessary.
 - Respect documentation (.md files, docstrings) within /app/hackplate.
 - Implement features via feature-based file structure within /app.
-- Run `inv run`, `pytest`, and `inv precommit` before finishing. Resolve any errors which appear.
+- Run `inv run`, `pytest`, and `inv precommit` before finishing. Resolve any errors which appear. Close server when done
 
 ## Testing
 
