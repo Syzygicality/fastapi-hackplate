@@ -59,5 +59,5 @@ class MongoPlate(DatabasePlate):
             logger.exception("Ping failed")
             return False
 
-    async def get_session(self) -> AsyncIOMotorDatabase:
+    async def get_db(self) -> AsyncIOMotorDatabase:
         return self.db

@@ -60,5 +60,5 @@ class PostgresPlate(DatabasePlate):
             logger.exception("Ping failed")
             return False
 
-    async def get_session(self) -> AsyncSession:
+    async def get_db(self) -> AsyncSession:
         return self._session_factory()
