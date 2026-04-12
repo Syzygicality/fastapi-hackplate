@@ -1,9 +1,17 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
+
+if TYPE_CHECKING:
+    from app.hackplate.hackplate_types import Hackplate
 
 
 class AuthPlate(ABC):
     @abstractmethod
-    async def foobar(self) -> None: ...
+    async def register_auth_routes(self, app: Hackplate) -> None: ...
+
+    @abstractmethod
+    async def get_current_user(self) -> callable: ...
 
 
 class DatabasePlate(ABC):

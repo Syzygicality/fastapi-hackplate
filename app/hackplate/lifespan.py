@@ -14,6 +14,7 @@ async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     setup_logging()
     config = BackendConfig()
     app.state.config = config
+    await app.state.config.auth.register_auth_routes(app)
     await config.db.connect()
     yield
     await config.db.disconnect()
@@ -43,6 +44,7 @@ def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
     """
     register_exception_handlers(app)
     register_cors_middleware(app)
+
     for fn in register_functions:
         try:
             fn(app)

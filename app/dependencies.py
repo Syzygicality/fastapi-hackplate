@@ -12,11 +12,4 @@ async def get_session(request: HackplateRequest) -> AsyncGenerator[AsyncSession,
 
 
 async def get_client(request: HackplateRequest) -> AsyncIOMotorDatabase:
-    return request.app.state.config.db.get_session()
-
-
-async def get_db(request: HackplateRequest):
-    if request.app.state.config.db_name == "mongodb":
-        get_client(request)
-    else:
-        get_session(request)
+    return await request.app.state.config.db.get_session()

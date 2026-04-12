@@ -19,6 +19,12 @@ class Hackplate(FastAPI):
 
     state: _AppState
 
+    def __init__(self, **kwargs):
+        from app.hackplate.lifespan import hackplate_lifespan
+
+        kwargs.setdefault("lifespan", hackplate_lifespan)
+        super().__init__(**kwargs)
+
 
 class HackplateRequest(Request):
     """

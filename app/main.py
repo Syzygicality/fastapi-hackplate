@@ -1,5 +1,5 @@
 from app.hackplate.hackplate_types import Hackplate
-from app.hackplate.lifespan import hackplate_lifespan, configure
+from app.hackplate.lifespan import configure
 
 
 def register_routes(app: Hackplate) -> None:
@@ -13,7 +13,6 @@ def register_routes(app: Hackplate) -> None:
 
 
 app = Hackplate(
-    lifespan=hackplate_lifespan,
     title="FastAPI Hackplate",
     description="A FastAPI hackathon boilerplate for rapid development and deployment.",
     version="0.1.0",
