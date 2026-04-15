@@ -12,4 +12,5 @@ async def get_session(request: HackplateRequest) -> AsyncGenerator[AsyncSession,
 
 
 async def get_client(request: HackplateRequest) -> AsyncIOMotorDatabase:
+    """Returns the raw Motor database. Prefer using Beanie Document models directly."""
     return await request.app.state.config.db.get_db()

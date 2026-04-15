@@ -1,6 +1,8 @@
 import logging
+from typing import Type
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from beanie import Document, init_beanie
 
 from app.hackplate.plates.abstract_plates import DatabasePlate
 
@@ -22,10 +24,20 @@ class MongoSettings(BaseSettings):
 
 
 class MongoPlate(DatabasePlate):
+    """
+    Database plate for MongoDB using Beanie ODM.
+
+    Register Beanie Document models before app startup by appending to
+    `document_models`, e.g. in app/lifespan.py:
+
+        app.state.config.db.document_models.append(MyDocument)
+    """
+
     def __init__(self):
         self.settings = MongoSettings()
         self.client: AsyncIOMotorClient | None = None
         self.db: AsyncIOMotorDatabase | None = None
+        self.document_models: list[Type[Document]] = []
 
     async def connect(self) -> None:
         logger.info("Connecting to mongo...")
@@ -39,6 +51,7 @@ class MongoPlate(DatabasePlate):
         )
         self.client = AsyncIOMotorClient(url)
         self.db = self.client[s.name]
+        await init_beanie(database=self.db, document_models=self.document_models)
 
     async def disconnect(self) -> None:
         if self.client:
