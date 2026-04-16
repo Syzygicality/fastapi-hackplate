@@ -11,17 +11,17 @@ FastAPI hackathon template for rapid prototyping. Supports multiple auth backend
 - Python 3.13+, managed with `uv`
 - Install deps: `uv sync`
 - Setup `.env`: `cp template.env .env` and fill in values
-- Run dev server: `inv run`
+- Run dev server: `hackplate run`
 - Uses `docker-compose.yml` for local infrastructure (databases, etc.)
 
 ## Code Style
 
-- Utilize `tasks.py`'s defined invoke commands.
+- Use the `hackplate` CLI for dev tasks (`hackplate run`, `hackplate precommit`, `hackplate clean`).
 - Plate usage is dictated by `.env` variables, customize there.
 - Do not modify any code within /app/hackplate unless necessary.
 - Respect documentation (.md files, docstrings) within /app/hackplate.
 - Implement features via feature-based file structure within /app.
-- Run `inv run`, `pytest`, and `inv precommit` before finishing. Resolve any errors which appear. Close server when done
+- Run `hackplate run`, `pytest`, and `hackplate precommit` before finishing. Resolve any errors which appear. Close server when done
 
 ## Testing
 
