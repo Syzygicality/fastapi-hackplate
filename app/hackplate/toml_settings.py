@@ -22,7 +22,15 @@ class TOMLSettings(BaseSettings):
         return (PyprojectTomlConfigSettingsSource(settings_cls),)
 
 
-toml_settings = TOMLSettings()
+class ProjectDetails(TOMLSettings):
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("project",),
+        extra="ignore",
+    )
+
+    name: str = "fastapi-hackplate"
+    version: str = "0.1.0"
+    description: str = ""
 
 
 # --- Usage Example ---

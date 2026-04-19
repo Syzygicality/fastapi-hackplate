@@ -28,11 +28,11 @@ async def hackplate_config_lifespan(app: Hackplate) -> AsyncGenerator[None, None
 async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     async with AsyncExitStack() as stack:
         await stack.enter_async_context(hackplate_base_lifespan(app))
-        if app.pre_lifespan:
-            await stack.enter_async_context(app.pre_lifespan(app))
+        if app.pre_hackplate_lifespan:
+            await stack.enter_async_context(app.pre_hackplate_lifespan(app))
         await stack.enter_async_context(hackplate_config_lifespan(app))
-        if app.post_lifespan:
-            await stack.enter_async_context(app.post_lifespan(app))
+        if app.post_hackplate_lifespan:
+            await stack.enter_async_context(app.post_hackplate_lifespan(app))
         yield
 
 

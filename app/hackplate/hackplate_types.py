@@ -19,19 +19,26 @@ class Hackplate(FastAPI):
     """
 
     state: _AppState
-    pre_lifespan: Callable[["Hackplate"], AsyncContextManager] | None = None
-    post_lifespan: Callable[["Hackplate"], AsyncContextManager] | None = None
+    pre_hackplate_lifespan: Callable[["Hackplate"], AsyncContextManager] | None = None
+    post_hackplate_lifespan: Callable[["Hackplate"], AsyncContextManager] | None = None
 
     def __init__(
         self, pre_hackplate_lifespan=None, post_hackplate_lifespan=None, **kwargs
     ):
         from app.hackplate.lifespan import hackplate_lifespan
+        from app.hackplate.toml_settings import ProjectDetails
 
         kwargs.setdefault("lifespan", hackplate_lifespan)
         super().__init__(**kwargs)
 
-        self.pre_lifespan = pre_hackplate_lifespan
-        self.post_lifespan = post_hackplate_lifespan
+        project_details = ProjectDetails()
+
+        self.title = project_details.name
+        self.description = project_details.description
+        self.version = project_details.version
+
+        self.pre_hackplate_lifespan = pre_hackplate_lifespan
+        self.post_hackplate_lifespan = post_hackplate_lifespan
 
 
 class HackplateRequest(Request):
