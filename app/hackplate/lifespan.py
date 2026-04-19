@@ -6,18 +6,17 @@ from app.hackplate.cors import register_cors_middleware
 from app.hackplate.exceptions import register_exception_handlers
 from app.hackplate.logging import setup_logging
 from app.hackplate.hackplate_types import Hackplate
-from app.lifespan import lifespan, pre_hackplate_lifespan
 
 
 @asynccontextmanager
-async def base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+async def hackplate_base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     config = BackendConfig()
     app.state.config = config
     yield
 
 
 @asynccontextmanager
-async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+async def hackplate_config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     setup_logging()
     await app.state.config.auth.register_auth_routes(app)
     await app.state.config.db.connect()
@@ -27,17 +26,13 @@ async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 
 @asynccontextmanager
 async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
-    """
-    Main lifespan handler for hackplate
-
-    Args:
-        app: initialized Hackplate object originating from main.py
-    """
     async with AsyncExitStack() as stack:
-        await stack.enter_async_context(base_lifespan(app))
-        await stack.enter_async_context(pre_hackplate_lifespan(app))
-        await stack.enter_async_context(config_lifespan(app))
-        await stack.enter_async_context(lifespan(app))
+        await stack.enter_async_context(hackplate_base_lifespan(app))
+        if app.pre_lifespan:
+            await stack.enter_async_context(app.pre_lifespan(app))
+        await stack.enter_async_context(hackplate_config_lifespan(app))
+        if app.post_lifespan:
+            await stack.enter_async_context(app.post_lifespan(app))
         yield
 
 
