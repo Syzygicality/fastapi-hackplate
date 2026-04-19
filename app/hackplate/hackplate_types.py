@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from starlette.datastructures import State
 
 from app.hackplate.config import BackendConfig
@@ -29,6 +29,14 @@ class Hackplate(FastAPI):
 class HackplateRequest(Request):
     """
     Custom class to to bind BackendConfig to request objects. Use in place of type and class `Request`
+    """
+
+    app: Hackplate
+
+
+class HackplateWebSocket(WebSocket):
+    """
+    Custom class to to bind BackendConfig to websocket objects. Use in place of type and class `WebSocket`
     """
 
     app: Hackplate
