@@ -17,7 +17,7 @@ database_plates = {
 auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
 
 
-class BackendSettings(BaseSettings):
+class BackendEnvSettings(BaseSettings):
     """
     Pulls hackplate's configured authentication and database plates from .env
     """
@@ -59,7 +59,7 @@ class BackendConfig:
     """
 
     def __init__(self):
-        config = BackendSettings()
+        config = BackendEnvSettings()
 
         self.db: DatabasePlate = database_plates[config.db]()
         self.db_name = config.db

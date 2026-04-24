@@ -7,7 +7,7 @@ from pydantic_settings import (
 )
 
 
-class TOMLSettings(BaseSettings):
+class BaseTOMLSettings(BaseSettings):
     model_config = SettingsConfigDict(
         pyproject_toml_table_header=("tool", "hackplate"),
         extra="ignore",
@@ -22,7 +22,7 @@ class TOMLSettings(BaseSettings):
         return (PyprojectTomlConfigSettingsSource(settings_cls),)
 
 
-class ProjectDetails(TOMLSettings):
+class ProjectDetails(BaseTOMLSettings):
     model_config = SettingsConfigDict(
         pyproject_toml_table_header=("project",),
         extra="ignore",
@@ -33,18 +33,26 @@ class ProjectDetails(TOMLSettings):
     description: str = ""
 
 
-# --- Usage Example ---
-# Define fields in pyproject.toml under [tool.hackplate]:
-#
-#   [tool.hackplate]
-#   app_title = "My App"
-#   debug = true
-#
-# Subclass TOMLSettings and declare matching fields:
-#
-#   class MySettings(TOMLSettings):
-#       app_title: str = "fastapi-hackplate"
-#       debug: bool = False
-#
-#   settings = MySettings()
-#   print(settings.app_title)  # "My App"
+class GeneralSettings(BaseTOMLSettings):
+    pass
+
+
+class DatabaseSettings(BaseTOMLSettings):
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("tool", "hackplate", "db"),
+        extra="ignore",
+    )
+
+
+class AuthSettings(BaseTOMLSettings):
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("tool", "hackplate", "auth"),
+        extra="ignore",
+    )
+
+
+class BackendSettings:
+    def __init__(self):
+        self.project = GeneralSettings()
+        self.db = DatabaseSettings()
+        self.auth = AuthSettings()

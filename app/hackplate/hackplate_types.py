@@ -3,6 +3,7 @@ from starlette.datastructures import State
 from typing import Callable, AsyncContextManager
 
 from app.hackplate.config import BackendConfig
+from app.hackplate.toml_settings import BackendSettings
 
 
 class _AppState(State):
@@ -11,6 +12,7 @@ class _AppState(State):
     """
 
     config: BackendConfig
+    settings: BackendSettings
 
 
 class Hackplate(FastAPI):
