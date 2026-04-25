@@ -7,6 +7,7 @@ from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
 from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
+from app.hackplate.toml_settings import BackendTOMLSettings
 
 database_plates = {
     "sqlite": SQLitePlate,
@@ -58,11 +59,11 @@ class BackendConfig:
     Centralizes hackplate's configured authentication and database plates
     """
 
-    def __init__(self):
+    def __init__(self, settings: BackendTOMLSettings):
         config = BackendEnvSettings()
 
-        self.db: DatabasePlate = database_plates[config.db]()
+        self.db: DatabasePlate = database_plates[config.db](settings.db)
         self.db_name = config.db
 
-        self.auth: AuthPlate = auth_plates[config.auth]()
+        self.auth: AuthPlate = auth_plates[config.auth](settings.auth)
         self.auth_name = config.auth

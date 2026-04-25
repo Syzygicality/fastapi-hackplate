@@ -6,14 +6,14 @@ from app.hackplate.cors import register_cors_middleware
 from app.hackplate.exceptions import register_exception_handlers
 from app.hackplate.logging import setup_logging
 from app.hackplate.hackplate_types import Hackplate
-from app.hackplate.toml_settings import BackendSettings
+from app.hackplate.toml_settings import BackendTOMLSettings
 
 
 @asynccontextmanager
 async def hackplate_base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
-    settings = BackendSettings()
+    settings = BackendTOMLSettings()
     app.state.settings = settings
-    config = BackendConfig()
+    config = BackendConfig(settings)
     app.state.config = config
     yield
 

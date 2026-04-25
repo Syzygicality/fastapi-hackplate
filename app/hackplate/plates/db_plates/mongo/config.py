@@ -5,6 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import Document, init_beanie
 
 from app.hackplate.plates.abstract_plates import DatabasePlate
+from app.hackplate.toml_settings import DatabaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +34,16 @@ class MongoPlate(DatabasePlate):
         app.state.config.db.document_models.append(MyDocument)
     """
 
-    def __init__(self):
-        self.settings = MongoSettings()
+    def __init__(self, toml_settings: DatabaseSettings):
+        self.env_settings = MongoSettings()
+        self.toml_settings = toml_settings
         self.client: AsyncIOMotorClient | None = None
         self.db: AsyncIOMotorDatabase | None = None
         self.document_models: list[Type[Document]] = []
 
     async def connect(self) -> None:
         logger.info("Connecting to mongo...")
-        s = self.settings
+        s = self.env_settings
         url = (
             s.url
             if s.url

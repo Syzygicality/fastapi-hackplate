@@ -43,6 +43,8 @@ class DatabaseSettings(BaseTOMLSettings):
         extra="ignore",
     )
 
+    alembic: bool = False
+
 
 class AuthSettings(BaseTOMLSettings):
     model_config = SettingsConfigDict(
@@ -51,7 +53,7 @@ class AuthSettings(BaseTOMLSettings):
     )
 
 
-class BackendSettings:
+class BackendTOMLSettings:
     def __init__(self):
         self.project = GeneralSettings()
         self.db = DatabaseSettings()

@@ -1,10 +1,11 @@
 import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlmodel import select
+from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.hackplate.plates.abstract_plates import DatabasePlate
+from app.hackplate.toml_settings import DatabaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -24,21 +25,29 @@ class PostgresSettings(BaseSettings):
 
 
 class PostgresPlate(DatabasePlate):
-    def __init__(self):
-        self.settings = PostgresSettings()
+    def __init__(self, toml_settings: DatabaseSettings):
+        self.env_settings = PostgresSettings()
+        self.toml_settings = toml_settings
         self.engine = None
         self._session_factory: async_sessionmaker[AsyncSession] | None = None
 
     async def connect(self) -> None:
         logger.info("Connecting to postgres...")
-        s = self.settings
+        s = self.env_settings
         url = (
             f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
-            if not self.settings.url
-            else self.settings.url
+            if not self.env_settings.url
+            else self.env_settings.url
         )
         self.engine = create_async_engine(url)
         self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
+        if not self.toml_settings.alembic:
+            logger.info(
+                "Alembic disabled, using SQLModel metadata to create database models..."
+            )
+            async with self.engine.begin() as conn:
+                await conn.run_sync(SQLModel.metadata.create_all)
+            logger.info("Success!")
 
     async def disconnect(self) -> None:
         if self.engine:

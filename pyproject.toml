@@ -33,5 +33,6 @@ package = true
 [tool.hackplate]
 
 [tool.hackplate.db]
+# alembic = false
 
 [tool.hackplate.auth]
