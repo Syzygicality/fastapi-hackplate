@@ -15,7 +15,11 @@ database_plates = {
     "mongo": MongoPlate,
 }
 
+database_plate_list = list(database_plates.keys())
+
 auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
+
+auth_plate_list = list(auth_plates.keys())
 
 
 class BackendEnvSettings(BaseSettings):
