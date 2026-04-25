@@ -34,7 +34,7 @@ class ProjectDetails(BaseTOMLSettings):
 
 
 class GeneralSettings(BaseTOMLSettings):
-    pass
+    auth_user_model: str = "app.hackplate.user.models.User"
 
 
 class DatabaseSettings(BaseTOMLSettings):

@@ -8,6 +8,8 @@ from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
 from app.hackplate.toml_settings import BackendTOMLSettings
+from app.hackplate.user.models import AbstractUser, AbstractUserDocument
+from app.hackplate.user.utils import get_user_model
 
 database_plates = {
     "sqlite": SQLitePlate,
@@ -65,9 +67,22 @@ class BackendConfig:
 
     def __init__(self, settings: BackendTOMLSettings):
         config = BackendEnvSettings()
+        self.auth_user_model = get_user_model()
 
-        self.db: DatabasePlate = database_plates[config.db](settings.db)
+        # fmt: off
+        if config.db == "mongo" and not issubclass(self.auth_user_model, AbstractUserDocument):
+            raise ValueError(
+                f"{self.auth_user_model.__name__} must inherit from AbstractUserDocument when using the mongo plate"
+            )
+        # fmt: on
+
+        if config.db != "mongo" and not issubclass(self.auth_user_model, AbstractUser):
+            raise ValueError(
+                f"{self.auth_user_model.__name__} must inherit from AbstractUser when using a SQL plate"
+            )
+
         self.db_name = config.db
+        self.db: DatabasePlate = database_plates[config.db](settings.db)
 
-        self.auth: AuthPlate = auth_plates[config.auth](settings.auth)
         self.auth_name = config.auth
+        self.auth: AuthPlate = auth_plates[config.auth](settings.auth)
