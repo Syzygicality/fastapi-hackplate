@@ -23,6 +23,8 @@ class PostgresSettings(BaseSettings):
     host: str = "localhost"
     port: int = 5432
 
+    ssl_required: bool = False
+
 
 class PostgresPlate(DatabasePlate):
     def __init__(self, toml_settings: DatabaseSettings):

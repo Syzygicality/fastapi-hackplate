@@ -23,6 +23,8 @@ class MongoSettings(BaseSettings):
     username: str | None = None
     password: str | None = None
 
+    ssl_required: bool = False
+
 
 class MongoPlate(DatabasePlate):
     """
