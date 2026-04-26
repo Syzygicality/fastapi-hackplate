@@ -1,3 +1,4 @@
+import logging
 from fastapi_users import BaseUserManager, UUIDIDMixin
 from fastapi_users.exceptions import InvalidID
 from beanie import PydanticObjectId
@@ -7,6 +8,8 @@ import bson.errors
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
+
+logger = logging.getLogger(__name__)
 
 
 class UserEnvSettings(BaseSettings):
@@ -29,17 +32,17 @@ class UserManager(UUIDIDMixin, BaseUserManager[AbstractUser, UUID]):
     verification_token_secret = secret_key + "_verify"
 
     async def on_after_register(self, user: AbstractUser, request=None):
-        print(f"User {user.id} registered.")
+        logger.info(f"User {user.id} registered.")
 
     async def on_after_forgot_password(
         self, user: AbstractUser, token: str, request=None
     ):
-        print(f"User {user.id} forgot password. Token: {token}")
+        logger.info(f"User {user.id} forgot password. Token: {token}")
 
     async def on_after_request_verify(
         self, user: AbstractUser, token: str, request=None
     ):
-        print(f"User {user.id} requested verification. Token: {token}")
+        logger.info(f"User {user.id} requested verification. Token: {token}")
 
 
 class UserDocumentManager(
@@ -50,14 +53,14 @@ class UserDocumentManager(
     verification_token_secret = secret_key + "_verify"
 
     async def on_after_register(self, user: AbstractUserDocument, request=None):
-        print(f"User {user.id} registered.")
+        logger.info(f"User {user.id} registered.")
 
     async def on_after_forgot_password(
         self, user: AbstractUserDocument, token: str, request=None
     ):
-        print(f"User {user.id} forgot password. Token: {token}")
+        logger.info(f"User {user.id} forgot password. Token: {token}")
 
     async def on_after_request_verify(
         self, user: AbstractUserDocument, token: str, request=None
     ):
-        print(f"User {user.id} requested verification. Token: {token}")
+        logger.info(f"User {user.id} requested verification. Token: {token}")
