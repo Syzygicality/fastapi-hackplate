@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import Literal
 from dotenv import set_key
+import secrets
 
 import typer
 
@@ -18,6 +19,12 @@ ROOT_DIR = subprocess.run(
 
 
 @app.command()
+def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
+    key = secrets.token_hex(length)
+    set_key(Path(ROOT_DIR) / ".env", "SECRET_KEY", key, quote_mode="never")
+
+
+@app.command()
 def startfeature(feature_name: str):
     feature_dir = Path(ROOT_DIR) / "app" / feature_name
     feature_dir.mkdir(exist_ok=True)
@@ -26,7 +33,7 @@ def startfeature(feature_name: str):
 
 
 @app.command()
-def set(plate_type: Literal["auth", "db"], plate_name: str):
+def setplate(plate_type: Literal["auth", "db"], plate_name: str):
     from app.hackplate.config import database_plate_list, auth_plate_list
 
     plates = {"auth": auth_plate_list, "db": database_plate_list}

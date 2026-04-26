@@ -4,8 +4,15 @@ from beanie import PydanticObjectId
 from uuid import UUID
 from typing import Any
 import bson.errors
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
+
+
+class UserEnvSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    secret_key: str
 
 
 class ObjectIDIDMixin:
@@ -17,8 +24,9 @@ class ObjectIDIDMixin:
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[AbstractUser, UUID]):
-    reset_password_token_secret = "CHANGE_ME"
-    verification_token_secret = "CHANGE_ME"
+    secret_key = UserEnvSettings().secret_key
+    reset_password_token_secret = secret_key + "_reset"
+    verification_token_secret = secret_key + "_verify"
 
     async def on_after_register(self, user: AbstractUser, request=None):
         print(f"User {user.id} registered.")
@@ -37,8 +45,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[AbstractUser, UUID]):
 class UserDocumentManager(
     ObjectIDIDMixin, BaseUserManager[AbstractUserDocument, PydanticObjectId]
 ):
-    reset_password_token_secret = "CHANGE_ME"
-    verification_token_secret = "CHANGE_ME"
+    secret_key = UserEnvSettings().secret_key
+    reset_password_token_secret = secret_key + "_reset"
+    verification_token_secret = secret_key + "_verify"
 
     async def on_after_register(self, user: AbstractUserDocument, request=None):
         print(f"User {user.id} registered.")
