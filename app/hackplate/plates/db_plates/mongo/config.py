@@ -1,11 +1,13 @@
 import logging
 from typing import Type
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import Document, init_beanie
+from pymongo import AsyncMongoClient
+from pymongo.asynchronous.database import AsyncDatabase
 
 from app.hackplate.plates.abstract_plates import DatabasePlate
 from app.hackplate.toml_settings import DatabaseSettings
+from app.hackplate.user.utils import get_user_model
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class MongoSettings(BaseSettings):
 
 class MongoPlate(DatabasePlate):
     """
-    Database plate for MongoDB using Beanie ODM.
+    Database plate for MongoDB using Beanie ODM and pymongo async.
 
     Register Beanie Document models before app startup by appending to
     `document_models`, e.g. in app/lifespan.py:
@@ -39,12 +41,12 @@ class MongoPlate(DatabasePlate):
     def __init__(self, toml_settings: DatabaseSettings):
         self.env_settings = MongoSettings()
         self.toml_settings = toml_settings
-        self.client: AsyncIOMotorClient | None = None
-        self.db: AsyncIOMotorDatabase | None = None
+        self.client: AsyncMongoClient | None = None
+        self.db: AsyncDatabase | None = None
         self.document_models: list[Type[Document]] = []
 
     async def connect(self) -> None:
-        logger.info("Connecting to mongo...")
+        logger.info("Connecting to mongodb...")
         s = self.env_settings
         url = (
             s.url
@@ -53,14 +55,17 @@ class MongoPlate(DatabasePlate):
             if s.username and s.password
             else f"mongodb://{s.host}:{s.port}"
         )
-        self.client = AsyncIOMotorClient(url)
+        if s.ssl_required:
+            url += "/?tls=true"
+        self.client = AsyncMongoClient(url)
         self.db = self.client[s.name]
+        self.document_models.append(get_user_model())
         await init_beanie(database=self.db, document_models=self.document_models)
 
     async def disconnect(self) -> None:
         if self.client:
-            logger.info("Disconnecting from mongo...")
-            self.client.close()
+            logger.info("Disconnecting from mongodb...")
+            await self.client.close()
             self.client = None
             self.db = None
 
@@ -76,5 +81,5 @@ class MongoPlate(DatabasePlate):
             logger.exception("Ping failed")
             return False
 
-    async def get_db(self) -> AsyncIOMotorDatabase:
+    async def get_db(self) -> AsyncDatabase:
         return self.db
