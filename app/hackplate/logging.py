@@ -5,7 +5,9 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "format": "%(levelname)s:     <HACKPLATE> %(name)s: %(message)s",
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s <HACKPLATE> %(name)s: %(message)s",
+            "use_colors": None,
         },
     },
     "handlers": {
