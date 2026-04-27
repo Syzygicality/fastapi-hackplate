@@ -85,4 +85,4 @@ class BackendConfig:
         self.db: DatabasePlate = database_plates[config.db](settings.db)
 
         self.auth_name = config.auth
-        self.auth: AuthPlate = auth_plates[config.auth](settings.auth)
+        self.auth: AuthPlate = auth_plates[config.auth](settings.auth, self.db_name)

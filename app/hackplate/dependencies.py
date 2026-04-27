@@ -1,9 +1,13 @@
+from __future__ import annotations
 from collections.abc import AsyncGenerator
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 from pymongo.asynchronous.database import AsyncDatabase
 
-from app.hackplate.hackplate_types import HackplateRequest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.hackplate.hackplate_types import HackplateRequest
 
 
 async def hackplate_get_session(

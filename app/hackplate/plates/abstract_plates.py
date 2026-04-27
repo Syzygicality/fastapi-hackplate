@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 
 if TYPE_CHECKING:
     from app.hackplate.hackplate_types import Hackplate
@@ -11,7 +12,7 @@ class AuthPlate(ABC):
     async def register_auth_routes(self, app: Hackplate) -> None: ...
 
     @abstractmethod
-    async def get_current_user(self) -> callable: ...
+    async def get_current_user(self) -> Callable: ...
 
 
 class DatabasePlate(ABC):

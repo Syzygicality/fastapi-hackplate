@@ -1,5 +1,7 @@
 import importlib
 from functools import lru_cache
+from uuid import UUID
+from fastapi_users import FastAPIUsers
 
 from app.hackplate.toml_settings import GeneralSettings
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
@@ -16,3 +18,10 @@ def get_user_model() -> type[AbstractUser] | type[AbstractUserDocument]:
             f"{settings.auth_user_model} must inherit from AbstractUser or AbstractUserDocument"
         )
     return model
+
+
+def make_fastapi_users(auth_backend, manager_dependency):
+    return FastAPIUsers[AbstractUser, UUID](
+        manager_dependency,
+        [auth_backend],
+    )
