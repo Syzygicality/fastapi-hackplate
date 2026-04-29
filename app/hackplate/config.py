@@ -7,6 +7,7 @@ from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
 from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
+from app.hackplate.plates.auth_plates.keycloak.config import KeycloakPlate
 from app.hackplate.toml_settings import BackendTOMLSettings
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.utils import get_user_model
@@ -19,7 +20,7 @@ database_plates = {
 
 database_plate_list = list(database_plates.keys())
 
-auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": None}
+auth_plates = {"local": LocalPlate, "auth0": None, "keycloak": KeycloakPlate}
 
 auth_plate_list = list(auth_plates.keys())
 

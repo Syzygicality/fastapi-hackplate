@@ -74,23 +74,30 @@ def run(
     docker: bool = typer.Option(False, "-dc", "--docker-compose"),
     args: list[str] = typer.Argument(default=None),
 ):
-    """Start the uvicorn development server with hot reload."""
+    """Start the uvicorn development server with hot reload, with the option to use docker."""
     extra = args or []
     if not docker:
         subprocess.run(
             ["uv", "run", "uvicorn", "app.main:app", "--reload", *extra], check=True
         )
         return
+
+    command_prefix = ["docker", "compose"]
+
     load_dotenv(verbose=True)
     auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
     if auth_plate and auth_plate == "keycloak":
-        subprocess.run(
-            ["docker", "compose", "--profile", "keycloak", "up", "-d", *extra],
-            check=True,
-        )
-    else:
-        subprocess.run(["docker", "compose", "up", "-d", *extra], check=True)
-    subprocess.run(["docker", "compose", "logs", "-f"], check=True)
+        command_prefix += ["--profile", "keycloak"]
+
+    subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
+    subprocess.run([*command_prefix, "logs", "-f"], check=True)
+
+
+@app.command()
+def down(args: list[str] = typer.Argument(default=None)):
+    """Stop active docker containers."""
+    extra = args or []
+    subprocess.run(["docker", "compose", "--profile", "*", "down", *extra], check=True)
 
 
 if __name__ == "__main__":
