@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 from typing import Literal
-from dotenv import set_key
+from dotenv import set_key, load_dotenv, get_key
 import secrets
 
 import typer
@@ -20,12 +20,14 @@ ROOT_DIR = subprocess.run(
 
 @app.command()
 def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
+    """Set/regenerate the secret key used for the authentication plate."""
     key = secrets.token_hex(length)
     set_key(Path(ROOT_DIR) / ".env", "SECRET_KEY", key, quote_mode="never")
 
 
 @app.command()
 def startfeature(feature_name: str):
+    """Autogenerate feature files and directory."""
     feature_dir = Path(ROOT_DIR) / "app" / feature_name
     feature_dir.mkdir(exist_ok=True)
     for filename in ["routes.py", "schemas.py", "crud.py", "models.py", "__init__.py"]:
@@ -34,6 +36,7 @@ def startfeature(feature_name: str):
 
 @app.command()
 def setplate(plate_type: Literal["auth", "db"], plate_name: str):
+    """Set/update the authentication and database plates being used by Hackplate."""
     from app.hackplate.config import database_plate_list, auth_plate_list
 
     plates = {"auth": auth_plate_list, "db": database_plate_list}
@@ -67,9 +70,27 @@ def precommit():
 
 
 @app.command()
-def run():
+def run(
+    docker: bool = typer.Option(False, "-dc", "--docker-compose"),
+    args: list[str] = typer.Argument(default=None),
+):
     """Start the uvicorn development server with hot reload."""
-    subprocess.run(["uv", "run", "uvicorn", "app.main:app", "--reload"])
+    extra = args or []
+    if not docker:
+        subprocess.run(
+            ["uv", "run", "uvicorn", "app.main:app", "--reload", *extra], check=True
+        )
+        return
+    load_dotenv(verbose=True)
+    auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
+    if auth_plate and auth_plate == "keycloak":
+        subprocess.run(
+            ["docker", "compose", "--profile", "keycloak", "up", "-d", *extra],
+            check=True,
+        )
+    else:
+        subprocess.run(["docker", "compose", "up", "-d", *extra], check=True)
+    subprocess.run(["docker", "compose", "logs", "-f"], check=True)
 
 
 if __name__ == "__main__":
