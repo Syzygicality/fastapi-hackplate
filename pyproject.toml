@@ -28,7 +28,7 @@ hackplate = "app.hackplate.cli:app"
 package = true
 
 [tool.hackplate]
-auth_user_model = "app.hackplate.user.models.UserDocument"
+auth_user_model = "app.hackplate.user.models.User"
 
 [tool.hackplate.db]
 # alembic = false
