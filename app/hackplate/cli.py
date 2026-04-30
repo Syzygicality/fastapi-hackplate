@@ -100,5 +100,68 @@ def down(args: list[str] = typer.Argument(default=None)):
     subprocess.run(["docker", "compose", "--profile", "*", "down", *extra], check=True)
 
 
+@app.command()
+def kcsync(
+    host: str = typer.Option("http://localhost:8080", "-h", "--host"),
+    realm: str | None = typer.Option(None, "-r", "--realm"),
+    username: str | None = typer.Option(None, "-u", "--username"),
+    password: str | None = typer.Option(None, "-p", "--password"),
+):
+    """Sync Keycloak realm config to app/hackplate/plates/auth_plates/keycloak/settings.json."""
+    import httpx
+    import json
+
+    from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
+
+    settings = KeycloakSettings()
+
+    kc_host = host or settings.host
+    kc_realm = realm or settings.realm
+    kc_username = username or settings.admin_username
+    kc_password = password or settings.admin_password
+
+    try:
+        token_res = httpx.post(
+            f"{kc_host}/realms/master/protocol/openid-connect/token",
+            data={
+                "client_id": "admin-cli",
+                "username": kc_username,
+                "password": kc_password,
+                "grant_type": "password",
+            },
+        )
+        token_res.raise_for_status()
+    except Exception:
+        typer.echo(
+            "Keycloak service could not be reached. Check if the keycloak container is running and your host, username, and password are correct.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    token = token_res.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    realm_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}", headers=headers)
+    realm_data.raise_for_status()
+    clients_data = httpx.get(
+        f"{kc_host}/admin/realms/{kc_realm}/clients", headers=headers
+    )
+    clients_data.raise_for_status()
+    roles_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}/roles", headers=headers)
+    roles_data.raise_for_status()
+
+    merged = realm_data.json()
+    merged["clients"] = clients_data.json()
+    merged["roles"] = {"realm": roles_data.json()}
+
+    out_path = (
+        Path(ROOT_DIR) / "app/hackplate/plates/auth_plates/keycloak/settings.json"
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(merged, indent=2))
+
+    typer.echo("Keycloak synced!")
+
+
 if __name__ == "__main__":
     app()
