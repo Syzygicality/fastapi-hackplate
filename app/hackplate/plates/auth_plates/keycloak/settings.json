@@ -1,5 +1,4 @@
 {
-  "id": "8c9a2ee1-16ad-4336-a93d-546d3b2acf30",
   "realm": "hackplate",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
@@ -26,8 +25,8 @@
   "oauth2DeviceCodeLifespan": 600,
   "oauth2DevicePollingInterval": 5,
   "enabled": true,
-  "sslRequired": "external",
-  "registrationAllowed": false,
+  "sslRequired": "none",
+  "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "rememberMe": false,
   "verifyEmail": false,
@@ -46,12 +45,10 @@
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
   "defaultRole": {
-    "id": "0a72a437-68be-4537-b995-251de2ab4b06",
     "name": "default-roles-hackplate",
     "description": "${role_default-roles}",
     "composite": true,
-    "clientRole": false,
-    "containerId": "8c9a2ee1-16ad-4336-a93d-546d3b2acf30"
+    "clientRole": false
   },
   "requiredCredentials": [
     "password"
@@ -126,8 +123,12 @@
     "cibaExpiresIn": "120",
     "cibaAuthRequestedUserHint": "login_hint",
     "oauth2DeviceCodeLifespan": "600",
+    "clientOfflineSessionMaxLifespan": "0",
     "oauth2DevicePollingInterval": "5",
+    "clientSessionIdleTimeout": "0",
     "parRequestUriLifespan": "60",
+    "clientSessionMaxLifespan": "0",
+    "clientOfflineSessionIdleTimeout": "0",
     "cibaInterval": "5",
     "realmReusableOtpCode": "false"
   },
@@ -143,7 +144,6 @@
   },
   "clients": [
     {
-      "id": "3d1206f2-3402-451c-bd0c-98ccdd66e3cf",
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
@@ -184,18 +184,12 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     },
     {
-      "id": "2511e0b5-fdf4-4321-87c9-11dba11d583e",
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
@@ -228,7 +222,6 @@
       "nodeReRegistrationTimeout": 0,
       "protocolMappers": [
         {
-          "id": "563ded36-b2b4-444e-bfdb-e3697005d95e",
           "name": "audience resolve",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-resolve-mapper",
@@ -247,18 +240,12 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     },
     {
-      "id": "b171833b-96ca-4343-a24a-907c2f52bebc",
       "clientId": "admin-cli",
       "name": "${client_admin-cli}",
       "surrogateAuthRequired": false,
@@ -279,7 +266,8 @@
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "false",
-        "client.use.lightweight.access.token.enabled": "true"
+        "client.use.lightweight.access.token.enabled": "true",
+        "post.logout.redirect.uris": "+"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -295,18 +283,12 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     },
     {
-      "id": "5c60f20f-c7af-421e-a17b-7ffcc801e294",
       "clientId": "broker",
       "name": "${client_broker}",
       "surrogateAuthRequired": false,
@@ -326,7 +308,8 @@
       "frontchannelLogout": false,
       "protocol": "openid-connect",
       "attributes": {
-        "realm_client": "true"
+        "realm_client": "true",
+        "post.logout.redirect.uris": "+"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -342,18 +325,90 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     },
     {
-      "id": "f8431618-fb2f-4c42-89cd-70b0092cf617",
+      "clientId": "hackplate",
+      "name": "Hackplate",
+      "description": "",
+      "rootUrl": "http://localhost:8000",
+      "adminUrl": "http://localhost:8000",
+      "baseUrl": "",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "hackplate-secret",
+      "redirectUris": [
+        "http://localhost:8000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8000",
+        "http://localhost:3000"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "realm_client": "false",
+        "logout.confirmation.enabled": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "standard.token.exchange.enabled": "false",
+        "post.logout.redirect.uris": "http://localhost:8000/docs",
+        "frontchannel.logout.session.required": "true",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "display.on.consent.screen": "false",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "dpop.bound.access.tokens": "false"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "hackplate",
+            "id.token.claim": "true",
+            "lightweight.claim": "false",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "organization",
+        "microprofile-jwt"
+      ]
+    },
+    {
       "clientId": "realm-management",
       "name": "${client_realm-management}",
       "surrogateAuthRequired": false,
@@ -373,7 +428,8 @@
       "frontchannelLogout": false,
       "protocol": "openid-connect",
       "attributes": {
-        "realm_client": "true"
+        "realm_client": "true",
+        "post.logout.redirect.uris": "+"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -389,18 +445,12 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     },
     {
-      "id": "844ef2a7-2e9e-43f6-8a3a-d511d893a18c",
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
@@ -436,7 +486,6 @@
       "nodeReRegistrationTimeout": 0,
       "protocolMappers": [
         {
-          "id": "feffd255-6b39-4617-b07d-ff7256a6c34d",
           "name": "locale",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-attribute-mapper",
@@ -463,42 +512,31 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "organization",
         "offline_access",
+        "organization",
         "microprofile-jwt"
-      ],
-      "access": {
-        "view": true,
-        "configure": true,
-        "manage": true
-      }
+      ]
     }
   ],
   "roles": {
     "realm": [
       {
-        "id": "0d2dcdfb-c78a-4128-a2f4-e27f886a1edb",
-        "name": "uma_authorization",
-        "description": "${role_uma_authorization}",
-        "composite": false,
-        "clientRole": false,
-        "containerId": "8c9a2ee1-16ad-4336-a93d-546d3b2acf30"
-      },
-      {
-        "id": "0a72a437-68be-4537-b995-251de2ab4b06",
-        "name": "default-roles-hackplate",
-        "description": "${role_default-roles}",
-        "composite": true,
-        "clientRole": false,
-        "containerId": "8c9a2ee1-16ad-4336-a93d-546d3b2acf30"
-      },
-      {
-        "id": "ac9d8217-6214-4850-a34b-6b968bf41209",
         "name": "offline_access",
         "description": "${role_offline-access}",
         "composite": false,
-        "clientRole": false,
-        "containerId": "8c9a2ee1-16ad-4336-a93d-546d3b2acf30"
+        "clientRole": false
+      },
+      {
+        "name": "default-roles-hackplate",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "clientRole": false
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}",
+        "composite": false,
+        "clientRole": false
       }
     ]
   }

@@ -21,7 +21,7 @@ ROOT_DIR = subprocess.run(
 @app.command()
 def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
     """Set/regenerate the secret key used for the authentication plate."""
-    key = secrets.token_hex(length)
+    key = secrets.token_urlsafe(length)[:length]
     set_key(Path(ROOT_DIR) / ".env", "SECRET_KEY", key, quote_mode="never")
 
 
