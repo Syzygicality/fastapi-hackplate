@@ -1,4 +1,5 @@
 {
+  "id": "30cd2548-111d-4217-a9dc-2fcc7315c7dd",
   "realm": "hackplate",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
@@ -45,10 +46,12 @@
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
   "defaultRole": {
+    "id": "50c42d66-5b03-4c40-b5ab-999e8586ebf7",
     "name": "default-roles-hackplate",
     "description": "${role_default-roles}",
     "composite": true,
-    "clientRole": false
+    "clientRole": false,
+    "containerId": "30cd2548-111d-4217-a9dc-2fcc7315c7dd"
   },
   "requiredCredentials": [
     "password"
@@ -144,6 +147,7 @@
   },
   "clients": [
     {
+      "id": "7b9f1c5e-0214-47be-8240-8c840e1f31e6",
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
@@ -176,20 +180,26 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "7c381cd0-bdfd-45df-8901-1c4c78ba69ae",
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
@@ -222,6 +232,7 @@
       "nodeReRegistrationTimeout": 0,
       "protocolMappers": [
         {
+          "id": "51fe51ee-7ca3-43e1-82ce-76bf84507bc4",
           "name": "audience resolve",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-resolve-mapper",
@@ -232,20 +243,26 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "21dae563-65b0-44b9-aea0-19fee60cbaac",
       "clientId": "admin-cli",
       "name": "${client_admin-cli}",
       "surrogateAuthRequired": false,
@@ -275,20 +292,26 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "03cdf3c1-1fb2-46af-8149-e64f5121d96e",
       "clientId": "broker",
       "name": "${client_broker}",
       "surrogateAuthRequired": false,
@@ -317,20 +340,26 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "8195733f-bdad-4593-99a1-bb796f5415a7",
       "clientId": "hackplate",
       "name": "Hackplate",
       "description": "",
@@ -341,7 +370,6 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "hackplate-secret",
       "redirectUris": [
         "http://localhost:8000/*"
       ],
@@ -364,6 +392,7 @@
         "realm_client": "false",
         "logout.confirmation.enabled": "false",
         "oidc.ciba.grant.enabled": "false",
+        "client.secret.creation.time": "1777763037",
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",
         "post.logout.redirect.uris": "http://localhost:8000/docs",
@@ -378,6 +407,7 @@
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
         {
+          "id": "8c33ad64-798d-4b68-8511-fc573dbe836e",
           "name": "audience-mapper",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
@@ -394,21 +424,28 @@
       ],
       "defaultClientScopes": [
         "web-origins",
+        "service_account",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "093055c4-b394-4a1c-996f-954cc0b2d9e6",
       "clientId": "realm-management",
       "name": "${client_realm-management}",
       "surrogateAuthRequired": false,
@@ -437,20 +474,26 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     },
     {
+      "id": "c4cc3bd0-8264-481b-be91-568f5248a2ca",
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
@@ -486,6 +529,7 @@
       "nodeReRegistrationTimeout": 0,
       "protocolMappers": [
         {
+          "id": "3b460f5b-fa1e-4bca-b4b1-f05cd8f8a759",
           "name": "locale",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-attribute-mapper",
@@ -504,39 +548,50 @@
       "defaultClientScopes": [
         "web-origins",
         "acr",
-        "profile",
         "roles",
+        "profile",
         "basic",
         "email"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
-      ]
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     }
   ],
   "roles": {
     "realm": [
       {
+        "id": "2a1b9289-23b1-4754-bc45-53259d0c9439",
         "name": "offline_access",
         "description": "${role_offline-access}",
         "composite": false,
-        "clientRole": false
+        "clientRole": false,
+        "containerId": "30cd2548-111d-4217-a9dc-2fcc7315c7dd"
       },
       {
+        "id": "50c42d66-5b03-4c40-b5ab-999e8586ebf7",
         "name": "default-roles-hackplate",
         "description": "${role_default-roles}",
         "composite": true,
-        "clientRole": false
+        "clientRole": false,
+        "containerId": "30cd2548-111d-4217-a9dc-2fcc7315c7dd"
       },
       {
+        "id": "3e0f017a-1c13-4d96-b155-46257b4e7c72",
         "name": "uma_authorization",
         "description": "${role_uma_authorization}",
         "composite": false,
-        "clientRole": false
+        "clientRole": false,
+        "containerId": "30cd2548-111d-4217-a9dc-2fcc7315c7dd"
       }
     ]
   }

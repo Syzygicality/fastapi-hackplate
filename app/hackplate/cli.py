@@ -89,6 +89,9 @@ def run(
     if auth_plate and auth_plate == "keycloak":
         command_prefix += ["--profile", "keycloak"]
 
+    typer.echo(
+        "Keycloak plate in use, please run `hackplate kcsync` to pull the client secret."
+    )
     subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
     subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
@@ -137,8 +140,8 @@ def kcsync(
             err=True,
         )
         raise typer.Exit(code=1)
-    token = token_res.json()["access_token"]
 
+    token = token_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     realm_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}", headers=headers)
@@ -150,8 +153,38 @@ def kcsync(
     roles_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}/roles", headers=headers)
     roles_data.raise_for_status()
 
+    # find the hackplate client id to fetch its secret
+    clients = clients_data.json()
+    hackplate_client = next((c for c in clients if c["clientId"] == kc_realm), None)
+    if hackplate_client is None:
+        typer.echo(f"Could not find client '{kc_realm}' in realm.", err=True)
+        raise typer.Exit(code=1)
+
+    secret_res = httpx.get(
+        f"{kc_host}/admin/realms/{kc_realm}/clients/{hackplate_client['id']}/client-secret",
+        headers=headers,
+    )
+    secret_res.raise_for_status()
+    client_secret = secret_res.json().get("value")
+
+    # write secret to .env, strip from settings.json
+    if client_secret:
+        set_key(
+            Path(ROOT_DIR) / ".env",
+            "KEYCLOAK_CLIENT_SECRET",
+            client_secret,
+            quote_mode="never",
+        )
+        typer.echo("Client secret written to .env")
+
+    # strip secrets from clients before committing
+    SENSITIVE_KEYS = {"secret", "registrationAccessToken"}
+    sanitized_clients = [
+        {k: v for k, v in c.items() if k not in SENSITIVE_KEYS} for c in clients
+    ]
+
     merged = realm_data.json()
-    merged["clients"] = clients_data.json()
+    merged["clients"] = sanitized_clients
     merged["roles"] = {"realm": roles_data.json()}
 
     out_path = (
