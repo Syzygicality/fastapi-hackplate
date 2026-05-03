@@ -3,12 +3,13 @@ from pathlib import Path
 from typing import Literal
 from dotenv import set_key, load_dotenv, get_key
 import secrets
-
 import typer
+import time
+import httpx
+import json
 
 
 app = typer.Typer(help="Hackplate dev CLI")
-
 
 ROOT_DIR = subprocess.run(
     ["git", "rev-parse", "--show-toplevel"],
@@ -70,6 +71,13 @@ def precommit():
 
 
 @app.command()
+def down(args: list[str] = typer.Argument(default=None)):
+    """Stop active docker containers."""
+    extra = args or []
+    subprocess.run(["docker", "compose", "--profile", "*", "down", *extra], check=True)
+
+
+@app.command()
 def run(
     docker: bool = typer.Option(False, "-dc", "--docker-compose"),
     args: list[str] = typer.Argument(default=None),
@@ -89,36 +97,43 @@ def run(
     if auth_plate and auth_plate == "keycloak":
         command_prefix += ["--profile", "keycloak"]
 
-    typer.echo(
-        "Keycloak plate in use, please run `hackplate kcsync` to pull the client secret."
-    )
     subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
+
+    if auth_plate and auth_plate == "keycloak":
+        wait_for_keycloak()
+        subprocess.run(["hackplate", "kcsync"], check=True)
+
     subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
 
-@app.command()
-def down(args: list[str] = typer.Argument(default=None)):
-    """Stop active docker containers."""
-    extra = args or []
-    subprocess.run(["docker", "compose", "--profile", "*", "down", *extra], check=True)
+def wait_for_keycloak(host: str | None = None, retries: int = 20, delay: float = 1.0):
+    from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
+
+    kc_host = host or KeycloakSettings().localhost
+    typer.echo("Waiting for Keycloak to start up...")
+    for _ in range(retries):
+        try:
+            httpx.get(f"{kc_host}/realms/master", timeout=2)
+            return
+        except Exception:
+            time.sleep(delay)
+    typer.echo("Keycloak did not become ready in time.", err=True)
+    raise typer.Exit(code=1)
 
 
 @app.command()
 def kcsync(
-    host: str = typer.Option("http://localhost:8080", "-h", "--host"),
+    host: str | None = typer.Option(None, "-h", "--host"),
     realm: str | None = typer.Option(None, "-r", "--realm"),
     username: str | None = typer.Option(None, "-u", "--username"),
     password: str | None = typer.Option(None, "-p", "--password"),
 ):
     """Sync Keycloak realm config to app/hackplate/plates/auth_plates/keycloak/settings.json."""
-    import httpx
-    import json
-
     from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
 
     settings = KeycloakSettings()
 
-    kc_host = host or settings.host
+    kc_host = host or settings.localhost
     kc_realm = realm or settings.realm
     kc_username = username or settings.admin_username
     kc_password = password or settings.admin_password
@@ -153,7 +168,6 @@ def kcsync(
     roles_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}/roles", headers=headers)
     roles_data.raise_for_status()
 
-    # find the hackplate client id to fetch its secret
     clients = clients_data.json()
     hackplate_client = next((c for c in clients if c["clientId"] == kc_realm), None)
     if hackplate_client is None:
@@ -167,7 +181,6 @@ def kcsync(
     secret_res.raise_for_status()
     client_secret = secret_res.json().get("value")
 
-    # write secret to .env, strip from settings.json
     if client_secret:
         set_key(
             Path(ROOT_DIR) / ".env",
@@ -177,7 +190,6 @@ def kcsync(
         )
         typer.echo("Client secret written to .env")
 
-    # strip secrets from clients before committing
     SENSITIVE_KEYS = {"secret", "registrationAccessToken"}
     sanitized_clients = [
         {k: v for k, v in c.items() if k not in SENSITIVE_KEYS} for c in clients
@@ -191,7 +203,7 @@ def kcsync(
         Path(ROOT_DIR) / "app/hackplate/plates/auth_plates/keycloak/settings.json"
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(merged, indent=2))
+    out_path.write_text(json.dumps(merged, indent=2) + "\n")
 
     typer.echo("Keycloak synced!")
 
