@@ -20,9 +20,16 @@ async def hackplate_base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 
 @asynccontextmanager
 async def hackplate_config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+    from app.hackplate.dependencies import hackplate_get_current_user
+
     setup_logging()
     await app.state.config.auth.register_auth_routes(app)
     await app.state.config.db.connect()
+
+    app.dependency_overrides[hackplate_get_current_user] = (
+        app.state.config.auth.get_current_user()
+    )
+
     yield
     await app.state.config.db.disconnect()
 
