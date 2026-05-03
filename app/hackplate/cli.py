@@ -30,9 +30,16 @@ def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
 def startfeature(feature_name: str):
     """Autogenerate feature files and directory."""
     feature_dir = Path(ROOT_DIR) / "app" / feature_name
-    feature_dir.mkdir(exist_ok=True)
+    try:
+        feature_dir.mkdir(exist_ok=False)
+    except Exception:
+        typer.BadParameter(f"feature directory /{feature_name} already exists.")
     for filename in ["routes.py", "schemas.py", "crud.py", "models.py", "__init__.py"]:
         (feature_dir / filename).touch()
+    registry = Path(ROOT_DIR) / "migrations" / "register_models.py"
+    current = registry.read_text()
+    import_line = f"import app.{feature_name}.models  # noqa: F401\n"
+    registry.write_text(current + import_line)
 
 
 @app.command()
