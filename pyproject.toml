@@ -19,6 +19,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "beanie>=2.0.0",
     "fastapi-users>=15.0.5",
+    "alembic>=1.14.0",
 ]
 
 [project.scripts]
@@ -27,10 +28,13 @@ hackplate = "app.hackplate.cli:app"
 [tool.uv]
 package = true
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.hackplate]
 auth_user_model = "app.hackplate.user.models.User"
 
 [tool.hackplate.db]
-# alembic = false
+alembic = true
 
 [tool.hackplate.auth]
