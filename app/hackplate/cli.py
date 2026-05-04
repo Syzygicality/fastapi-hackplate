@@ -57,11 +57,21 @@ def dropfeature(feature_name: str):
         abort=True,
     )
 
-    shutil.rmtree(feature_dir)
     registry = Path(ROOT_DIR) / "migrations" / "register_models.py"
     import_line = f"import app.{feature_name}.models  # noqa: F401\n"
     registry.write_text(registry.read_text().replace(import_line, ""))
+    shutil.rmtree(feature_dir)
     typer.echo(f"Dropped feature '{feature_name}'.")
+
+
+@app.command()
+def getplates():
+    """Show the current auth and database plates in use."""
+    load_dotenv(Path(ROOT_DIR) / ".env")
+    auth = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH") or "(not set)"
+    db = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_DB") or "(not set)"
+    typer.echo(f"auth: {auth}")
+    typer.echo(f"db:   {db}")
 
 
 @app.command()
