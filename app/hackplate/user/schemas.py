@@ -1,14 +1,19 @@
 from fastapi_users import schemas
+from beanie import PydanticObjectId
 from uuid import UUID
 
 
 class UserRead(schemas.BaseUser[UUID]):
-    pass
+    sub: str | None = None
+
+
+class UserDocumentRead(schemas.BaseUser[PydanticObjectId]):
+    sub: str | None = None
 
 
 class UserCreate(schemas.BaseUserCreate):
-    pass
+    sub: str | None = None
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    pass
+    sub: str | None = None

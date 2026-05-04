@@ -148,7 +148,7 @@ def run(
 def wait_for_keycloak(host: str | None = None, retries: int = 20, delay: float = 1.0):
     from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
 
-    kc_host = host or KeycloakSettings().localhost
+    kc_host = host or KeycloakSettings().external_url
     typer.echo("Waiting for Keycloak to start up...")
     for _ in range(retries):
         try:
@@ -172,7 +172,7 @@ def kcsync(
 
     settings = KeycloakSettings()
 
-    kc_host = host or settings.localhost
+    kc_host = host or settings.external_url
     kc_realm = realm or settings.realm
     kc_username = username or settings.admin_username
     kc_password = password or settings.admin_password

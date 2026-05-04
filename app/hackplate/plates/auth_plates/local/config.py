@@ -9,7 +9,7 @@ from app.hackplate.user.dependencies import (
     get_sqlmodel_user_manager,
     get_beanie_user_manager,
 )
-from app.hackplate.plates.auth_plates.local.jwt import auth_backend
+from app.hackplate.plates.auth_plates.local.helpers import auth_backend
 from app.hackplate.user.schemas import UserCreate, UserRead, UserUpdate
 
 if TYPE_CHECKING:
