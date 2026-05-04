@@ -1,34 +1,38 @@
-from fastapi_users.models import ID, UP
+from fastapi_users.models import ID
 from typing import Any, Dict, Generic, Optional, Type, TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import func, select
 from fastapi_users.db.base import BaseUserDatabase
 from beanie import PydanticObjectId
 
-from app.hackplate.user.models import AbstractUserDocument
+from app.hackplate.user.models import AbstractUserDocument, AbstractUser
+
+UP_SQLMODEL = TypeVar("UP_SQLMODEL", bound=AbstractUser)
 
 
-class SQLModelUserDatabaseAsync(Generic[UP, ID], BaseUserDatabase[UP, ID]):
+class SQLModelUserDatabaseAsync(
+    Generic[UP_SQLMODEL, ID], BaseUserDatabase[UP_SQLMODEL, ID]
+):
     """
     Database adapter for SQLModel working purely asynchronously. Borrowed from fastapi-users-db-sqlmodel
     """
 
     session: AsyncSession
-    user_model: Type[UP]
+    user_model: Type[UP_SQLMODEL]
 
     def __init__(
         self,
         session: AsyncSession,
-        user_model: Type[UP],
+        user_model: Type[UP_SQLMODEL],
     ):
         self.session = session
         self.user_model = user_model
 
-    async def get(self, id: ID) -> Optional[UP]:
+    async def get(self, id: UP_SQLMODEL) -> Optional[UP_SQLMODEL]:
         """Get a single user by id."""
         return await self.session.get(self.user_model, id)
 
-    async def get_by_email(self, email: str) -> Optional[UP]:
+    async def get_by_email(self, email: str) -> Optional[UP_SQLMODEL]:
         """Get a single user by email."""
         statement = select(self.user_model).where(  # type: ignore
             func.lower(self.user_model.email) == func.lower(email)
@@ -39,7 +43,16 @@ class SQLModelUserDatabaseAsync(Generic[UP, ID], BaseUserDatabase[UP, ID]):
             return None
         return object[0]
 
-    async def create(self, create_dict: Dict[str, Any]) -> UP:
+    async def get_by_sub(self, sub: str) -> Optional[UP_SQLMODEL]:
+        """Get a single user by sub."""
+        statement = select(self.user_model).where(self.user_model.sub == sub)
+        results = await self.session.execute(statement)
+        object = results.first()
+        if object is None:
+            return None
+        return object[0]
+
+    async def create(self, create_dict: Dict[str, Any]) -> UP_SQLMODEL:
         """Create a user."""
         user = self.user_model(**create_dict)
         self.session.add(user)
@@ -47,7 +60,9 @@ class SQLModelUserDatabaseAsync(Generic[UP, ID], BaseUserDatabase[UP, ID]):
         await self.session.refresh(user)
         return user
 
-    async def update(self, user: UP, update_dict: Dict[str, Any]) -> UP:
+    async def update(
+        self, user: UP_SQLMODEL, update_dict: Dict[str, Any]
+    ) -> UP_SQLMODEL:
         for key, value in update_dict.items():
             setattr(user, key, value)
         self.session.add(user)
@@ -55,7 +70,7 @@ class SQLModelUserDatabaseAsync(Generic[UP, ID], BaseUserDatabase[UP, ID]):
         await self.session.refresh(user)
         return user
 
-    async def delete(self, user: UP) -> None:
+    async def delete(self, user: UP_SQLMODEL) -> None:
         await self.session.delete(user)
         await self.session.commit()
 
@@ -88,6 +103,10 @@ class BeanieUserDatabaseAsync(
             self.user_model.email == email,
             collation=self.user_model.Settings.email_collation,
         )
+
+    async def get_by_sub(self, sub: str) -> UP_BEANIE | None:
+        """Get a single user by sub."""
+        return await self.user_model.find_one(self.user_model.sub == sub)
 
     async def create(self, create_dict: dict[str, Any]) -> UP_BEANIE:
         """Create a user."""
