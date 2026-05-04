@@ -7,6 +7,7 @@ import typer
 import time
 import httpx
 import json
+import shutil
 
 
 app = typer.Typer(help="Hackplate dev CLI")
@@ -21,9 +22,10 @@ ROOT_DIR = subprocess.run(
 
 @app.command()
 def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
-    """Set/regenerate the secret key used for the authentication plate."""
+    """Set/regenerate the secret key used for the local authentication plate."""
     key = secrets.token_urlsafe(length)[:length]
     set_key(Path(ROOT_DIR) / ".env", "SECRET_KEY", key, quote_mode="never")
+    typer.echo("A new key has been set on SECRET_KEY.")
 
 
 @app.command()
@@ -40,6 +42,26 @@ def startfeature(feature_name: str):
     current = registry.read_text()
     import_line = f"import app.{feature_name}.models  # noqa: F401\n"
     registry.write_text(current + import_line)
+    typer.echo(f"Started feature '{feature_name}'.")
+
+
+@app.command()
+def dropfeature(feature_name: str):
+    """Remove a feature directory and its registration from register_models.py."""
+    feature_dir = Path(ROOT_DIR) / "app" / feature_name
+    if not feature_dir.exists():
+        typer.echo(f"Feature directory /app/{feature_name} does not exist.", err=True)
+        raise typer.Exit(code=1)
+    typer.confirm(
+        f"Drop feature '{feature_name}'? This will delete /app/{feature_name} and its model import.",
+        abort=True,
+    )
+
+    shutil.rmtree(feature_dir)
+    registry = Path(ROOT_DIR) / "migrations" / "register_models.py"
+    import_line = f"import app.{feature_name}.models  # noqa: F401\n"
+    registry.write_text(registry.read_text().replace(import_line, ""))
+    typer.echo(f"Dropped feature '{feature_name}'.")
 
 
 @app.command()
