@@ -20,6 +20,8 @@ class KeycloakSettings(BaseSettings):
     realm: str = "hackplate"
     host: str = "http://keycloak:8080"
     localhost: str = "http://localhost:8080"
+    client_id: str = "hackplate"
+    client_secret: str
 
 
 class KeycloakPlate(AuthPlate):

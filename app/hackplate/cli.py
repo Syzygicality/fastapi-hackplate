@@ -208,7 +208,9 @@ def kcsync(
     roles_data.raise_for_status()
 
     clients = clients_data.json()
-    hackplate_client = next((c for c in clients if c["clientId"] == kc_realm), None)
+    hackplate_client = next(
+        (c for c in clients if c["clientId"] == settings.client_id), None
+    )
     if hackplate_client is None:
         typer.echo(f"Could not find client '{kc_realm}' in realm.", err=True)
         raise typer.Exit(code=1)
