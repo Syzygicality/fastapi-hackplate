@@ -1,5 +1,3 @@
-import httpx
-import jwt
 import secrets
 from collections.abc import Callable
 from fastapi import APIRouter, status, Depends
@@ -7,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
 from urllib.parse import urlencode
 from fastapi_users import BaseUserManager
+from keycloak import KeycloakOpenID
 
 from app.hackplate.hackplate_types import HackplateRequest
 from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
@@ -16,10 +15,12 @@ from app.hackplate.user.schemas import UserCreate
 def keycloak_router_factory(
     settings: KeycloakSettings, manager_dependency: Callable
 ) -> APIRouter:
-    jwks_client = jwt.PyJWKClient(
-        f"{settings.host}/realms/{settings.realm}/protocol/openid-connect/certs"
+    keycloak_openid = KeycloakOpenID(
+        server_url=settings.host,
+        realm_name=settings.realm,
+        client_id=settings.client_id,
+        client_secret_key=settings.client_secret,
     )
-
     keycloak_router = APIRouter()
 
     @keycloak_router.get("/auth/login")
@@ -40,39 +41,19 @@ def keycloak_router_factory(
         code: str, user_manager: BaseUserManager = Depends(manager_dependency)
     ):
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{settings.host}/realms/{settings.realm}/protocol/openid-connect/token",
-                    data={
-                        "grant_type": "authorization_code",
-                        "client_id": settings.client_id,
-                        "client_secret": settings.client_secret,
-                        "code": code,
-                        "redirect_uri": settings.callback_url,
-                    },
-                )
-            response.raise_for_status()
-            tokens = response.json()
+            tokens = await keycloak_openid.a_token(
+                grant_type="authorization_code",
+                code=code,
+                redirect_uri=settings.callback_url,
+            )
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token exchange failed. Try again later.",
             )
 
-        if "error" in tokens:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Authentication service error. Try again later.",
-            )
-
         try:
-            signing_key = jwks_client.get_signing_key_from_jwt(tokens["id_token"])
-            user_info = jwt.decode(
-                tokens["id_token"],
-                signing_key.key,
-                algorithms=["RS256"],
-                audience=settings.client_id,
-            )
+            user_info = await keycloak_openid.a_decode_token(tokens["id_token"])
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token."
