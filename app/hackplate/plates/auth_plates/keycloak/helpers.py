@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 from fastapi import Depends
 from fastapi_users.authentication import (
@@ -11,7 +12,8 @@ from typing import Generic, TypeVar
 from app.hackplate.user.managers import UserManager, UserDocumentManager
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.dependencies import get_sqlmodel_user_db, get_beanie_user_db
-from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
+from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from collections.abc import Callable
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from keycloak import KeycloakOpenID
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
@@ -10,6 +9,7 @@ from fastapi_users import BaseUserManager
 from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.toml_settings import AuthSettings
 from app.hackplate.plates.auth_plates.keycloak.routes import keycloak_router_factory
+from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
 from app.hackplate.plates.auth_plates.keycloak.helpers import (
     auth_backend,
     get_keycloak_sqlmodel_user_manager,
@@ -20,23 +20,6 @@ from app.hackplate.user.schemas import UserRead, UserUpdate, UserDocumentRead
 
 if TYPE_CHECKING:
     from app.hackplate.hackplate_types import Hackplate, HackplateRequest
-
-
-class KeycloakSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="KEYCLOAK_", extra="ignore"
-    )
-
-    admin_username: str = "admin"
-    admin_password: str = "admin"
-    realm: str = "hackplate"
-    host: str = "http://keycloak:8080"
-    external_url: str = "http://localhost:8080"
-    client_id: str = "hackplate"
-    client_secret: str
-    callback_url: str = "http://localhost:8000/auth/callback"
-    redirect_uri: str = "http://localhost:8000/docs"
-    secure_cookies: bool = False
 
 
 class KeycloakPlate(AuthPlate):

@@ -1,4 +1,6 @@
+from __future__ import annotations
 import secrets
+from typing import TYPE_CHECKING
 from collections.abc import Callable
 from fastapi import APIRouter, status, Depends
 from fastapi.responses import RedirectResponse
@@ -7,9 +9,11 @@ from urllib.parse import urlencode
 from fastapi_users import BaseUserManager
 from keycloak import KeycloakOpenID
 
-from app.hackplate.hackplate_types import HackplateRequest
-from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
 from app.hackplate.user.schemas import UserCreate
+from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
+
+if TYPE_CHECKING:
+    from app.hackplate.hackplate_types import HackplateRequest
 
 
 def keycloak_router_factory(
