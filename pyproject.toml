@@ -21,6 +21,7 @@ dependencies = [
     "fastapi-users>=15.0.5",
     "alembic>=1.14.0",
     "python-keycloak>=7.1.1",
+    "auth0-python>=5.4.0",
 ]
 
 [project.scripts]
