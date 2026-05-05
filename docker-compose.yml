@@ -17,9 +17,10 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME_STRICT: "false"
-      KC_HTTP_ENABLED: "true"
-    command: start-dev --import-realm
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+    command: start-dev --http-enabled=true --hostname-strict=false --import-realm
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./app/hackplate/plates/auth_plates/keycloak/settings.json:/opt/keycloak/data/import/realm.json

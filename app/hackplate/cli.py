@@ -145,6 +145,38 @@ def run(
     subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
 
+def _allow_keycloak_http(host: str, username: str, password):
+    kcadm = [
+        "docker",
+        "compose",
+        "--profile",
+        "keycloak",
+        "exec",
+        "keycloak",
+        "/opt/keycloak/bin/kcadm.sh",
+    ]
+    subprocess.run(
+        [
+            *kcadm,
+            "config",
+            "credentials",
+            "--server",
+            host,
+            "--realm",
+            "master",
+            "--user",
+            username,
+            "--password",
+            password,
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [*kcadm, "update", "realms/master", "-s", "sslRequired=none"],
+        check=True,
+    )
+
+
 def wait_for_keycloak(host: str | None = None, retries: int = 20, delay: float = 1.0):
     from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
 
@@ -176,6 +208,8 @@ def kcsync(
     kc_realm = realm or settings.realm
     kc_username = username or settings.admin_username
     kc_password = password or settings.admin_password
+
+    _allow_keycloak_http(kc_host, kc_username, kc_password)
 
     try:
         token_res = httpx.post(

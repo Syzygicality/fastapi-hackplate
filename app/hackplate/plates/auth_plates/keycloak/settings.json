@@ -188,8 +188,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -251,8 +251,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -300,8 +300,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -348,8 +348,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -434,8 +434,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -482,8 +482,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -556,8 +556,8 @@
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
         "organization",
+        "offline_access",
         "microprofile-jwt"
       ],
       "access": {
@@ -570,7 +570,7 @@
   "roles": {
     "realm": [
       {
-        "id": "b85ad76a-1af4-4257-9e45-a4e8d99ef6e7",
+        "id": "c403cfb3-f824-4fff-8c00-55f8b6791506",
         "name": "offline_access",
         "description": "${role_offline-access}",
         "composite": false,
