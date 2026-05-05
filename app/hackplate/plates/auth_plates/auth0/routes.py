@@ -66,21 +66,30 @@ def auth0_router_factory(
 
         email = user_info["email"]
         sub = user_info["sub"]
-        existing_user = await user_manager.user_db.get_by_email(email)
+        user = await user_manager.user_db.get_by_sub(sub)
 
-        if not existing_user:
-            await user_manager.create(
-                UserCreate(
-                    email=email,
-                    password=secrets.token_urlsafe(32),
-                    is_verified=True,
-                    is_active=True,
-                    is_superuser=False,
-                    sub=sub,
-                )
-            )
-        elif not existing_user.sub:
-            await user_manager.user_db.update(existing_user, {"sub": sub})
+        if not user:
+            user = await user_manager.user_db.get_by_email(email)
+            if user:
+                await user_manager.user_db.update(user, {"sub": sub})
+            else:
+                try:
+                    await user_manager.create(
+                        UserCreate(
+                            email=email,
+                            password=secrets.token_urlsafe(32),
+                            is_verified=True,
+                            is_active=True,
+                            is_superuser=False,
+                            sub=sub,
+                        )
+                    )
+                except Exception:
+                    user = await user_manager.user_db.get_by_email(email)
+                    if not user:
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
 
         response = RedirectResponse(url=settings.redirect_uri)
         response.set_cookie(
@@ -101,12 +110,6 @@ def auth0_router_factory(
 
     @auth0_router.get("/auth/logout")
     async def logout(request: HackplateRequest):
-        id_token = request.cookies.get("id_token")
-        if not id_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in."
-            )
-
         params = urlencode(
             {
                 "client_id": settings.client_id,

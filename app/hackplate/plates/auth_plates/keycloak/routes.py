@@ -64,21 +64,32 @@ def keycloak_router_factory(
             )
 
         email = user_info["email"]
-        existing_user = await user_manager.user_db.get_by_email(email)
+        sub = user_info["sub"]
 
-        if not existing_user:
-            await user_manager.create(
-                UserCreate(
-                    email=email,
-                    password=secrets.token_urlsafe(32),
-                    is_verified=True,
-                    is_active=True,
-                    is_superuser=False,
-                    sub=user_info["sub"],
-                )
-            )
-        elif not existing_user.sub:
-            await user_manager.user_db.update(existing_user, {"sub": user_info["sub"]})
+        user = await user_manager.user_db.get_by_sub(sub)
+
+        if not user:
+            user = await user_manager.user_db.get_by_email(email)
+            if user:
+                await user_manager.user_db.update(user, {"sub": sub})
+            else:
+                try:
+                    await user_manager.create(
+                        UserCreate(
+                            email=email,
+                            password=secrets.token_urlsafe(32),
+                            is_verified=True,
+                            is_active=True,
+                            is_superuser=False,
+                            sub=sub,
+                        )
+                    )
+                except Exception:
+                    user = await user_manager.user_db.get_by_email(email)
+                    if not user:
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
 
         response = RedirectResponse(url=settings.redirect_uri)
         response.set_cookie(

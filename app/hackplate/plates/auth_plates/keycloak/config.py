@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from collections.abc import Callable
-from keycloak import KeycloakOpenID
+from keycloak import KeycloakOpenID, KeycloakAdmin, KeycloakOpenIDConnection
+
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi_users import BaseUserManager
@@ -12,6 +13,7 @@ from app.hackplate.plates.auth_plates.keycloak.routes import keycloak_router_fac
 from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
 from app.hackplate.plates.auth_plates.keycloak.helpers import (
     auth_backend,
+    KeycloakSyncMixin,
     get_keycloak_sqlmodel_user_manager,
     get_keycloak_beanie_user_manager,
 )
@@ -25,6 +27,19 @@ if TYPE_CHECKING:
 class KeycloakPlate(AuthPlate):
     def __init__(self, toml_settings: AuthSettings, db_name: str):
         self.env_settings = KeycloakSettings()
+
+        KeycloakSyncMixin.keycloak_admin = KeycloakAdmin(
+            connection=KeycloakOpenIDConnection(
+                server_url=self.env_settings.host,
+                realm_name=self.env_settings.realm,
+                username=self.env_settings.admin_username,
+                password=self.env_settings.admin_password,
+                client_id=self.env_settings.client_id,
+                client_secret_key=self.env_settings.client_secret,
+                verify=True,
+            )
+        )
+
         self.manager_dependency = (
             get_keycloak_beanie_user_manager
             if db_name == "mongo"
@@ -63,7 +78,7 @@ class KeycloakPlate(AuthPlate):
             except Exception:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-            user = await user_manager.user_db.get_by_email(user_info["email"])
+            user = await user_manager.user_db.get_by_sub(user_info["sub"])
             if not user or not user.is_active:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
             return user

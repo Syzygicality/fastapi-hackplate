@@ -7,6 +7,7 @@ from auth0.authentication.async_token_verifier import (
     AsyncAsymmetricSignatureVerifier,
     AsyncTokenVerifier,
 )
+from auth0.management import AsyncManagementClient
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi_users import BaseUserManager
@@ -15,6 +16,7 @@ from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
 from app.hackplate.plates.auth_plates.auth0.helpers import (
     auth_backend,
+    Auth0SyncMixin,
     get_auth0_beanie_user_manager,
     get_auth0_sqlmodel_user_manager,
 )
@@ -30,6 +32,13 @@ if TYPE_CHECKING:
 class Auth0Plate(AuthPlate):
     def __init__(self, toml_settings: AuthSettings, db_name: str):
         self.env_settings = Auth0Settings()
+
+        Auth0SyncMixin.mgmt_client = AsyncManagementClient(
+            domain=self.env_settings.domain,
+            client_id=self.env_settings.m2m_client_id,
+            client_secret=self.env_settings.m2m_client_secret,
+        )
+
         self.manager_dependency = (
             get_auth0_beanie_user_manager
             if db_name == "mongo"
@@ -43,7 +52,7 @@ class Auth0Plate(AuthPlate):
         self.token_verifier = AsyncTokenVerifier(
             signature_verifier=sv,
             issuer=f"https://{self.env_settings.domain}/",
-            audience=self.env_settings.client_id,
+            audience=self.env_settings.audience,
         )
 
     async def register_auth_routes(self, app: Hackplate) -> None:
@@ -70,7 +79,7 @@ class Auth0Plate(AuthPlate):
             except Exception:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-            user = await user_manager.user_db.get_by_email(payload["email"])
+            user = await user_manager.user_db.get_by_sub(payload["sub"])
             if not user or not user.is_active:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
             return user

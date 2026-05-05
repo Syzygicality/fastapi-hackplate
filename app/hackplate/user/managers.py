@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class UserEnvSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    secret_key: str
+    secret_key: str = "placeholder"
 
 
 class ObjectIDIDMixin:

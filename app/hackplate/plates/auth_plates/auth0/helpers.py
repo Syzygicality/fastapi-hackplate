@@ -14,7 +14,6 @@ from auth0.management import AsyncManagementClient
 from app.hackplate.user.dependencies import get_beanie_user_db, get_sqlmodel_user_db
 from app.hackplate.user.managers import UserDocumentManager, UserManager
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
-from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +23,12 @@ auth_backend = AuthenticationBackend(
     get_strategy=lambda: JWTStrategy(secret="unused", lifetime_seconds=0),
 )
 
-_settings = Auth0Settings()
-
-mgmt_client = AsyncManagementClient(
-    domain=_settings.domain,
-    client_id=_settings.m2m_client_id,
-    client_secret=_settings.m2m_client_secret,
-)
-
 UP = TypeVar("UP", AbstractUser, AbstractUserDocument)
 
 
 class Auth0SyncMixin(Generic[UP]):
+    mgmt_client: AsyncManagementClient
+
     async def on_after_update(self, user: UP, update_dict: dict, request=None):
         if not user.sub:
             return
@@ -47,7 +40,7 @@ class Auth0SyncMixin(Generic[UP]):
         if not kwargs:
             return
         try:
-            await mgmt_client.users.update(user.sub, **kwargs)
+            await self.mgmt_client.users.update(user.sub, **kwargs)
             logger.info(f"User {user.id} synced to Auth0.")
         except Exception as e:
             logger.error(f"Failed to sync user {user.id} to Auth0: {e}")
@@ -56,7 +49,7 @@ class Auth0SyncMixin(Generic[UP]):
         if not user.sub:
             return
         try:
-            await mgmt_client.users.delete(user.sub)
+            await self.mgmt_client.users.delete(user.sub)
             logger.info(f"User {user.id} deleted from Auth0.")
         except Exception as e:
             logger.error(f"Failed to delete user {user.id} from Auth0: {e}")
