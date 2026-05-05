@@ -187,10 +187,12 @@ def kcsync(
                 "grant_type": "password",
             },
         )
-        token_res.raise_for_status()
-    except Exception:
+    except Exception as e:
+        typer.echo(f"Could not reach Keycloak at {kc_host}: {e}", err=True)
+        raise typer.Exit(code=1)
+    if not token_res.is_success:
         typer.echo(
-            "Keycloak service could not be reached. Check if the keycloak container is running and your host, username, and password are correct.",
+            f"Keycloak token request failed ({token_res.status_code}): {token_res.text}",
             err=True,
         )
         raise typer.Exit(code=1)
