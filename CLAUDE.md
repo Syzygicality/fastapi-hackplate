@@ -52,10 +52,12 @@ app/
 ├── main.py              ← register routers here
 ├── lifespan.py          ← pre/post startup hooks (user-editable)
 ├── dependencies.py      ← get_db and get_current_user wrappers (user-editable)
+│                          for WebSocket handlers use get_db_from_ws from hackplate/websocket.py
 └── hackplate/           ← framework internals — do not modify unless necessary
     ├── cli.py
     ├── config.py        ← loads plates from .env, validates choices
-    ├── hackplate_types.py ← Hackplate (FastAPI subclass), HackplateRequest
+    ├── hackplate_types.py ← Hackplate (FastAPI subclass), HackplateRequest, HackplateWebSocket
+    ├── websocket.py     ← WSConnectionManager (broadcast to all clients), get_db_from_ws
     ├── lifespan.py      ← orchestrates startup/shutdown with plates
     ├── toml_settings.py ← reads [tool.hackplate] from pyproject.toml
     └── plates/
