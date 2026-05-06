@@ -43,6 +43,8 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `uv run alembic revision --autogenerate -m "<msg>"` | Generate a migration |
 | `uv run alembic upgrade head` | Apply migrations |
 
+Run `hackplate --help` for the full command reference.
+
 ## Architecture
 
 ```
@@ -117,7 +119,7 @@ def register_routes(app: Hackplate) -> None:
 
 ## Migrations
 
-Alembic is enabled by default (`[tool.hackplate.db] alembic = true`). When disabled, SQLModel creates tables on startup.
+Alembic is disabled by default (`[tool.hackplate.db] alembic = false`). When disabled, SQLModel creates tables on startup. Set `alembic = true` to manage schema with migrations instead.
 
 Migrations only apply to SQL plates (SQLite, Postgres). For Mongo, Beanie manages schema automatically.
 
@@ -164,7 +166,9 @@ Run with: `uv run pytest`
 Run all three in order and resolve any errors:
 
 ```bash
-hackplate run      # verify server starts clean, then Ctrl+C
-pytest             # run test suite (skip if no tests exist yet)
-hackplate precommit  # lint and format
+hackplate run                  # verify server starts clean, then Ctrl+C
+# if using the keycloak plate:
+hackplate run --docker-compose # starts Keycloak via docker compose, waits, then tails logs
+pytest                         # run test suite (skip if no tests exist yet)
+hackplate precommit            # lint and format
 ```

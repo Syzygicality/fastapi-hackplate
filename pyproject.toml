@@ -34,9 +34,13 @@ package = true
 include = ["app*"]
 
 [tool.hackplate]
+# The user model used by the auth plate. Must inherit from AbstractUser (SQL plates)
+# or AbstractUserDocument (mongo plate). Change this if you define a custom user model.
 auth_user_model = "app.hackplate.user.models.User"
 
 [tool.hackplate.db]
-alembic = true
+# Set to true to manage schema with Alembic migrations.
+# When false, SQLModel creates tables automatically on startup (not recommended for production).
+alembic = false
 
 [tool.hackplate.auth]
