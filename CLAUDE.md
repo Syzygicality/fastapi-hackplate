@@ -31,7 +31,7 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `hackplate run --docker-compose` | Start full stack via docker compose |
 | `hackplate init` | First-time repo setup (runs once) |
 | `hackplate precommit` | Install and run pre-commit on all files |
-| `hackplate clean` | Remove `.ruff_cache`, `.pytest_cache`, `*.egg-info` |
+| `hackplate clean` | Remove `.ruff_cache`, `.pytest_cache`, `__pycache__`, `*.egg-info` |
 | `hackplate regenkey` | Regenerate `SECRET_KEY` in `.env` |
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |

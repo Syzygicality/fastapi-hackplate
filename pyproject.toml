@@ -33,6 +33,9 @@ package = true
 [tool.setuptools.packages.find]
 include = ["app*"]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 [tool.hackplate]
 # The user model used by the auth plate. Must inherit from AbstractUser (SQL plates)
 # or AbstractUserDocument (mongo plate). Change this if you define a custom user model.

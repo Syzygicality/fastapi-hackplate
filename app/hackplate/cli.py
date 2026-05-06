@@ -148,10 +148,15 @@ def setplate(plate_type: Literal["auth", "db"], plate_name: str):
 
 @app.command()
 def clean():
-    """Remove cache/metadata directories (.ruff_cache, .pytest_cache, *.egg-info)."""
-    for folder in [".ruff_cache", ".pytest_cache", *Path(".").glob("*.egg-info")]:
-        if Path(folder).exists():
-            subprocess.run(["rm", "-r", f"./{folder}"], check=True)
+    """Remove cache/metadata directories (.ruff_cache, .pytest_cache, __pycache__, *.egg-info)."""
+    root = Path(ROOT_DIR)
+    for folder in [".ruff_cache", ".pytest_cache", *root.glob("*.egg-info")]:
+        target: Path = root / folder
+        if target.exists():
+            subprocess.run(["rm", "-r", str(target)], check=True)
+    for pycache in root.rglob("__pycache__"):
+        if pycache.exists():
+            subprocess.run(["rm", "-r", str(pycache)], check=True)
 
 
 @app.command()
