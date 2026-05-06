@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 from pymongo.asynchronous.database import AsyncDatabase
 
-from app.hackplate.hackplate_types import HackplateRequest
+from app.hackplate import HackplateRequest
 from app.hackplate.dependencies import (
     hackplate_get_session,
     hackplate_get_client,

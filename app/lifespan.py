@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from app.hackplate.hackplate_types import Hackplate
+from app.hackplate import Hackplate
 
 
 @asynccontextmanager
