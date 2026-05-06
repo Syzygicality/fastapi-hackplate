@@ -12,16 +12,16 @@ logger = logging.getLogger(__name__)
 
 class SupabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="SUPABASE_", env_file=".env", extra="ignore"
+        env_prefix="POSTGRES_", env_file=".env", extra="ignore"
     )
 
     url: str | None = None
 
-    db_name: str = "postgres"
-    db_user: str = "postgres"
-    db_password: str
-    db_host: str
-    db_port: int = 5432
+    name: str = "postgres"
+    username: str = "postgres"
+    password: str
+    host: str
+    port: int = 5432
 
     ssl_required: bool = True
 
@@ -39,7 +39,7 @@ class SupabasePlate(DatabasePlate):
         if s.url:
             url = s.url
         else:
-            base = f"postgresql+asyncpg://{s.db_user}:{s.db_password}@{s.db_host}:{s.db_port}/{s.db_name}"
+            base = f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
             url = f"{base}?ssl=require" if s.ssl_required else base
         self.engine = create_async_engine(url)
         self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)

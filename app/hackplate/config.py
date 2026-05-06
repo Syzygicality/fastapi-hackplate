@@ -4,6 +4,7 @@ from typing import Self
 
 from app.hackplate.plates.db_plates.sqlite.config import SQLitePlate
 from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
+from app.hackplate.plates.db_plates.postgres.supabase_config import SupabasePlate
 from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
@@ -16,6 +17,7 @@ from app.hackplate.user.utils import get_user_model
 database_plates = {
     "sqlite": SQLitePlate,
     "postgres": PostgresPlate,
+    "supabase": SupabasePlate,
     "mongo": MongoPlate,
 }
 

@@ -36,11 +36,11 @@ class PostgresPlate(DatabasePlate):
     async def connect(self) -> None:
         logger.info("Connecting to postgres...")
         s = self.env_settings
-        url = (
-            f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
-            if not self.env_settings.url
-            else self.env_settings.url
-        )
+        if s.url:
+            url = s.url
+        else:
+            base = f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
+            url = f"{base}?ssl=require" if s.ssl_required else base
         self.engine = create_async_engine(url)
         self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
         if not self.toml_settings.alembic:
