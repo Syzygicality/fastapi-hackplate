@@ -21,6 +21,60 @@ ROOT_DIR = subprocess.run(
 
 
 @app.command()
+def init():
+    """Initialize the repo for development. Prompts for plates and sets up .env. Runs once."""
+    import sys
+    from app.hackplate.config import database_plate_list, auth_plate_list
+
+    sentinel = Path(ROOT_DIR) / ".hackplate_init"
+    if sentinel.exists():
+        typer.echo("Already initialized. Delete .hackplate_init to re-run.", err=True)
+        raise typer.Exit(code=1)
+
+    if not shutil.which("uv"):
+        typer.echo("Installing uv...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True)
+
+    typer.echo("Running uv sync...")
+    subprocess.run(["uv", "sync"], check=True, cwd=ROOT_DIR)
+
+    env_path = Path(ROOT_DIR) / ".env"
+    template_path = Path(ROOT_DIR) / "template.env"
+
+    if not env_path.exists():
+        shutil.copy(template_path, env_path)
+        typer.echo("Created .env from template.env")
+
+    auth_choices = list(auth_plate_list)
+    typer.echo(f"\nAvailable auth plates: {', '.join(auth_choices)}")
+    auth_plate = typer.prompt("Auth plate", default="local")
+    while auth_plate not in auth_choices:
+        typer.echo(f"Invalid choice. Pick one of: {', '.join(auth_choices)}")
+        auth_plate = typer.prompt("Auth plate", default="local")
+
+    db_choices = list(database_plate_list)
+    typer.echo(f"\nAvailable database plates: {', '.join(db_choices)}")
+    db_plate = typer.prompt("Database plate", default="sqlite")
+    while db_plate not in db_choices:
+        typer.echo(f"Invalid choice. Pick one of: {', '.join(db_choices)}")
+        db_plate = typer.prompt("Database plate", default="sqlite")
+
+    set_key(env_path, "HACKPLATE_AUTH", auth_plate, quote_mode="never")
+    set_key(env_path, "HACKPLATE_DB", db_plate, quote_mode="never")
+
+    key = secrets.token_urlsafe(32)[:32]
+    set_key(env_path, "SECRET_KEY", key, quote_mode="never")
+
+    typer.echo("\nInstalling pre-commit hooks...")
+    subprocess.run(["uv", "run", "pre-commit", "install"], check=True, cwd=ROOT_DIR)
+
+    sentinel.touch()
+
+    typer.echo(f"\nInitialized: auth={auth_plate}, db={db_plate}")
+    typer.echo("Secret key generated. Fill in remaining values in .env before running.")
+
+
+@app.command()
 def regenkey(length: int = typer.Option(32, "-l", "--length", min=8)):
     """Set/regenerate the secret key used for the local authentication plate."""
     key = secrets.token_urlsafe(length)[:length]

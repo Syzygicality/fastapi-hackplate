@@ -134,6 +134,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Hackplate
+.hackplate_init
+
 # Environments
 .env
 .envrc
