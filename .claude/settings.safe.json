@@ -47,6 +47,17 @@
                     }
                 ]
             }
+        ],
+        "UserPromptSubmit": [
+            {
+                "matcher": ".*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "echo \"$(cat CLAUDE.mode.md) in use.\""
+                    }
+                ]
+            }
         ]
     },
     "includeGitInstructions": false,

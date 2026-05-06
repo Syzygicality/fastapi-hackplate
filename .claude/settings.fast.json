@@ -42,7 +42,18 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "echo 'Checklist: hackplate run  •  pytest (if pytests exist)  •  hackplate precommit'"
+                        "command": "echo 'Checklist: hackplate run  •  hackplate precommit'"
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "matcher": ".*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "echo \"$(cat CLAUDE.mode.md) in use.\""
                     }
                 ]
             }
