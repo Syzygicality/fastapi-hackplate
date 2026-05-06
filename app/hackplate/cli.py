@@ -68,6 +68,8 @@ def init():
     typer.echo("\nInstalling pre-commit hooks...")
     subprocess.run(["uv", "run", "pre-commit", "install"], check=True, cwd=ROOT_DIR)
 
+    subprocess.run(["hackplate", "setmode", "safe"], check=True, cwd=ROOT_DIR)
+
     sentinel.touch()
 
     typer.echo(f"\nInitialized: auth={auth_plate}, db={db_plate}")
@@ -143,6 +145,20 @@ def setplate(plate_type: Literal["auth", "db"], plate_name: str):
         {"db": "HACKPLATE_DB", "auth": "HACKPLATE_AUTH"}[plate_type],
         plate_name,
         quote_mode="never",
+    )
+
+
+@app.command()
+def setmode(mode: Literal["safe", "fast"]):
+    """Switch the Claude Code operating mode. Writes to the gitignored CLAUDE.mode.md."""
+    mode_path = Path(ROOT_DIR) / "CLAUDE.mode.md"
+    mode_path.write_text(f"@CLAUDE.{mode}.md\n")
+    shutil.copy(
+        Path(ROOT_DIR) / ".claude" / f"settings.{mode}.json",
+        Path(ROOT_DIR) / ".claude" / "settings.json",
+    )
+    typer.echo(
+        f"Claude mode set to '{mode}'. Restart your session for {mode} mode to take effect"
     )
 
 

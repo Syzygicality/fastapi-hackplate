@@ -122,6 +122,7 @@ Never put deployment-varying values in `pyproject.toml` or structural decisions 
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |
 | `hackplate setplate db <plate>` | Switch db plate |
+| `hackplate setmode safe\|fast` | Switch Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a vertical slice under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
 | `hackplate regenkey` | Regenerate `SECRET_KEY` in `.env` |
@@ -165,5 +166,7 @@ uv run alembic upgrade head
 ## For AI agents
 
 Read `CLAUDE.md` (reasoning-friendly, supports `@import`) and `AGENTS.md` (imperative, cross-tool standard) before making changes. The `.claude/settings.json` pre-configures allowed commands and post-edit hooks.
+
+`CLAUDE.md` imports the gitignored `CLAUDE.mode.md`, which re-exports either `CLAUDE.safe.md` or `CLAUDE.fast.md`. Switch modes with `hackplate setmode safe|fast`; `hackplate init` creates `CLAUDE.mode.md` defaulting to `safe`.
 
 The single extension pattern: add routes in `app/main.py` via `register_routes()`, inject dependencies from `app/dependencies.py`, and scaffold new slices with `hackplate startfeature`. Don't modify `app/hackplate/` unless extending a plate interface.

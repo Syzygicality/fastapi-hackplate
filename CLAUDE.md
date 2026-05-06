@@ -2,6 +2,8 @@
 
 Guidelines for Claude Code when working in this repository.
 
+@CLAUDE.mode.md
+
 ## Project Overview
 
 FastAPI hackathon template for rapid prototyping. The core framework lives in `app/hackplate/` and is not meant to be edited — user code lives in `app/` alongside it. The framework is configured through two mechanisms: `.env` (selects which plates to activate) and `pyproject.toml` `[tool.hackplate]` tables (fine-grained options like alembic toggle, custom user model).
@@ -36,6 +38,7 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |
 | `hackplate setplate db <plate>` | Switch db plate |
+| `hackplate setmode safe\|fast` | Switch Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a new feature directory under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
 | `hackplate kcsync` | Sync Keycloak realm config to `settings.json` |
@@ -144,33 +147,3 @@ Key `.env` variables by plate:
 | `auth0` | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_AUDIENCE` |
 | `keycloak` | `KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ADMIN_USERNAME/PASSWORD` |
 | `local` | `SECRET_KEY` (auto-set by `hackplate init` or `hackplate regenkey`) |
-
-## Testing
-
-Write tests in `/tests/` as standard pytest files. Use the async client for API tests:
-
-```python
-import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
-
-@pytest.mark.asyncio
-async def test_example():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        response = await client.get("/health")
-    assert response.status_code == 200
-```
-
-Run with: `uv run pytest`
-
-## Before Finishing
-
-Run all three in order and resolve any errors:
-
-```bash
-hackplate run                  # verify server starts clean, then Ctrl+C
-# if using the keycloak plate:
-hackplate run --docker-compose # starts Keycloak via docker compose, waits, then tails logs
-pytest                         # run test suite (skip if no tests exist yet)
-hackplate precommit            # lint and format
-```
