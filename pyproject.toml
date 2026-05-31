@@ -27,11 +27,15 @@ dependencies = [
 [project.scripts]
 hackplate = "app.hackplate.cli:app"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.uv]
 package = true
 
-[tool.setuptools.packages.find]
-include = ["app*"]
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
