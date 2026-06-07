@@ -208,12 +208,13 @@ def run(
 
     load_dotenv(verbose=True)
     auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
-    if auth_plate and auth_plate == "keycloak":
+    is_local = get_key(Path(ROOT_DIR) / ".env", "KEYCLOAK_USE_LOCAL")
+    if auth_plate and auth_plate == "keycloak" and is_local:
         command_prefix += ["--profile", "keycloak"]
 
     subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
 
-    if auth_plate and auth_plate == "keycloak":
+    if auth_plate and auth_plate == "keycloak" and is_local:
         wait_for_keycloak()
         subprocess.run(["hackplate", "kcsync"], check=True)
 
