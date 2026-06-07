@@ -1,24 +1,27 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from collections.abc import Callable
-from keycloak import KeycloakOpenID, KeycloakAdmin, KeycloakOpenIDConnection
 
-from fastapi import Depends, status
+from typing import TYPE_CHECKING, Any
+
+from fastapi import status
 from fastapi.exceptions import HTTPException
-from fastapi_users import BaseUserManager
+from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
 
 from app.hackplate.plates.abstract_plates import AuthPlate
-from app.hackplate.toml_settings import AuthSettings
-from app.hackplate.plates.auth_plates.keycloak.routes import keycloak_router_factory
 from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
 from app.hackplate.plates.auth_plates.keycloak.helpers import (
     auth_backend,
     KeycloakSyncMixin,
-    get_keycloak_sqlmodel_user_manager,
     get_keycloak_beanie_user_manager,
+    get_keycloak_sqlmodel_user_manager,
 )
-from app.hackplate.user.utils import make_fastapi_users
-from app.hackplate.user.schemas import UserRead, UserUpdate, UserDocumentRead
+from app.hackplate.plates.auth_plates.keycloak.routes import keycloak_router_factory
+from app.hackplate.toml_settings import AuthSettings
+from app.hackplate.user.adapters import (
+    BeanieUserDatabaseAsync,
+    SQLModelUserDatabaseAsync,
+)
+from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
+from app.hackplate.user.utils import get_user_model, make_fastapi_users
 
 if TYPE_CHECKING:
     from app.hackplate.hackplate_types import Hackplate, HackplateRequest
@@ -26,6 +29,7 @@ if TYPE_CHECKING:
 
 class KeycloakPlate(AuthPlate):
     def __init__(self, toml_settings: AuthSettings, db_name: str):
+        self.db_name = db_name
         self.env_settings = KeycloakSettings()
 
         KeycloakSyncMixin.keycloak_admin = KeycloakAdmin(
@@ -65,22 +69,23 @@ class KeycloakPlate(AuthPlate):
             tags=["users"],
         )
 
-    def get_current_user(self) -> Callable:
-        async def authenticate(
-            request: HackplateRequest,
-            user_manager: BaseUserManager = Depends(self.manager_dependency),
-        ):
-            token = request.cookies.get("access_token")
-            if not token:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-            try:
-                user_info = await self.keycloak_openid.a_decode_token(token)
-            except Exception:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    async def authenticate(self, request: HackplateRequest) -> Any:
+        token = request.cookies.get("access_token")
+        if not token:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user_info = await self.keycloak_openid.a_decode_token(token)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-            user = await user_manager.user_db.get_by_sub(user_info["sub"])
-            if not user or not user.is_active:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-            return user
+        if self.db_name == "mongo":
+            user_db = BeanieUserDatabaseAsync(get_user_model())
+            user = await user_db.get_by_sub(user_info["sub"])
+        else:
+            async with request.app.state.config.db.get_db() as session:
+                user_db = SQLModelUserDatabaseAsync(session, get_user_model())
+                user = await user_db.get_by_sub(user_info["sub"])
 
-        return authenticate
+        if not user or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        return user

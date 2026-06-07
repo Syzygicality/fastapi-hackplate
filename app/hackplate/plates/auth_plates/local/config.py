@@ -1,29 +1,39 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
+
+from fastapi import status
+from fastapi.exceptions import HTTPException
 
 from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.toml_settings import AuthSettings
-from app.hackplate.user.utils import make_fastapi_users
+from app.hackplate.user.utils import make_fastapi_users, get_user_model
 from app.hackplate.user.dependencies import (
     get_sqlmodel_user_manager,
     get_beanie_user_manager,
 )
-from app.hackplate.plates.auth_plates.local.helpers import auth_backend
+from app.hackplate.plates.auth_plates.local.helpers import (
+    auth_backend,
+    get_jwt_strategy,
+)
 from app.hackplate.user.schemas import UserCreate, UserRead, UserUpdate
+from app.hackplate.user.adapters import (
+    SQLModelUserDatabaseAsync,
+    BeanieUserDatabaseAsync,
+)
+from app.hackplate.user.managers import UserManager, UserDocumentManager
 
 if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import Hackplate
+    from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 
 
 class LocalPlate(AuthPlate):
     def __init__(self, toml_settings: AuthSettings, db_name: str):
+        self.db_name = db_name
         manager_dep = get_sqlmodel_user_manager
         if db_name == "mongo":
             manager_dep = get_beanie_user_manager
 
         self.fastapi_users = make_fastapi_users(auth_backend, manager_dep)
-        self.current_active_user = self.fastapi_users.current_user(active=True)
 
     async def register_auth_routes(self, app: Hackplate) -> None:
         app.include_router(
@@ -52,5 +62,23 @@ class LocalPlate(AuthPlate):
             tags=["users"],
         )
 
-    def get_current_user(self) -> Callable:
-        return self.current_active_user
+    async def authenticate(self, request: HackplateRequest) -> Any:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        token = auth_header[7:]
+        strategy = get_jwt_strategy()
+
+        if self.db_name == "mongo":
+            user_db = BeanieUserDatabaseAsync(get_user_model())
+            user_manager = UserDocumentManager(user_db)
+            user = await strategy.read_token(token, user_manager)
+        else:
+            async with request.app.state.config.db.get_db() as session:
+                user_db = SQLModelUserDatabaseAsync(session, get_user_model())
+                user_manager = UserManager(user_db)
+                user = await strategy.read_token(token, user_manager)
+
+        if not user or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        return user

@@ -22,12 +22,5 @@ async def hackplate_get_client(request: HackplateRequest) -> AsyncDatabase:
     return await request.app.state.config.db.get_db()
 
 
-async def hackplate_get_current_user():
-    """
-    Returns the current authenticated user from the configured auth plate.
-
-    This is a placeholder overridden via app.dependency_overrides during the hackplate
-    lifespan with the auth plate's get_current_user() callable. Use as
-    Depends(hackplate_get_current_user) in route definitions.
-    """
-    ...
+async def hackplate_get_current_user(request: HackplateRequest):
+    return await request.app.state.config.auth.authenticate(request)
