@@ -69,7 +69,16 @@ class Auth0Plate(AuthPlate):
             tags=["users"],
         )
 
-    async def authenticate(self, request: HackplateRequest) -> Any:
+    async def authenticate(self, request: HackplateRequest) -> None:
+        id_token = request.cookies.get("id_token")
+        if not id_token:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        try:
+            await self.token_verifier.verify(id_token)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+    async def get_current_user(self, request: HackplateRequest) -> Any:
         id_token = request.cookies.get("id_token")
         if not id_token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

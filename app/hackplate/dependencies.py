@@ -22,5 +22,9 @@ async def hackplate_get_client(request: HackplateRequest) -> AsyncDatabase:
     return await request.app.state.config.db.get_db()
 
 
+async def hackplate_authenticate(request: HackplateRequest) -> None:
+    await request.app.state.config.auth.authenticate(request)
+
+
 async def hackplate_get_current_user(request: HackplateRequest):
-    return await request.app.state.config.auth.authenticate(request)
+    return await request.app.state.config.auth.get_current_user(request)

@@ -11,7 +11,14 @@ class AuthPlate(ABC):
     async def register_auth_routes(self, app: Hackplate) -> None: ...
 
     @abstractmethod
-    async def authenticate(self, request: HackplateRequest) -> Any: ...
+    async def authenticate(self, request: HackplateRequest) -> None:
+        """Verify the request is authenticated. Raises 401 on failure. No DB call."""
+        ...
+
+    @abstractmethod
+    async def get_current_user(self, request: HackplateRequest) -> Any:
+        """Verify and return the authenticated user. Raises 401 on failure."""
+        ...
 
 
 class DatabasePlate(ABC):

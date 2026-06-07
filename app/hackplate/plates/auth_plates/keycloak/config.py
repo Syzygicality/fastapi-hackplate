@@ -69,7 +69,16 @@ class KeycloakPlate(AuthPlate):
             tags=["users"],
         )
 
-    async def authenticate(self, request: HackplateRequest) -> Any:
+    async def authenticate(self, request: HackplateRequest) -> None:
+        token = request.cookies.get("access_token")
+        if not token:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        try:
+            await self.keycloak_openid.a_decode_token(token)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+    async def get_current_user(self, request: HackplateRequest) -> Any:
         token = request.cookies.get("access_token")
         if not token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
