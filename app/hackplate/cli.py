@@ -310,21 +310,20 @@ def kcsync(
     token = token_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    realm_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}", headers=headers)
-    realm_data.raise_for_status()
-    clients_data = httpx.get(
-        f"{kc_host}/admin/realms/{kc_realm}/clients", headers=headers
+    export_res = httpx.post(
+        f"{kc_host}/admin/realms/{kc_realm}/partial-export",
+        params={"exportClients": "true", "exportGroupsAndRoles": "true"},
+        headers=headers,
     )
-    clients_data.raise_for_status()
-    roles_data = httpx.get(f"{kc_host}/admin/realms/{kc_realm}/roles", headers=headers)
-    roles_data.raise_for_status()
+    export_res.raise_for_status()
+    exported = export_res.json()
 
-    clients = clients_data.json()
+    clients = exported.get("clients", [])
     hackplate_client = next(
         (c for c in clients if c["clientId"] == settings.client_id), None
     )
     if hackplate_client is None:
-        typer.echo(f"Could not find client '{kc_realm}' in realm.", err=True)
+        typer.echo(f"Could not find client '{settings.client_id}' in realm.", err=True)
         raise typer.Exit(code=1)
 
     secret_res = httpx.get(
@@ -344,13 +343,11 @@ def kcsync(
         typer.echo("Client secret written to .env")
 
     SENSITIVE_KEYS = {"secret", "registrationAccessToken"}
-    sanitized_clients = [
+    exported["clients"] = [
         {k: v for k, v in c.items() if k not in SENSITIVE_KEYS} for c in clients
     ]
 
-    merged = realm_data.json()
-    merged["clients"] = sanitized_clients
-    merged["roles"] = {"realm": roles_data.json()}
+    merged = exported
 
     out_path = (
         Path(ROOT_DIR) / "app/hackplate/plates/auth_plates/keycloak/settings.json"
