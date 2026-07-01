@@ -150,11 +150,11 @@ def setplate(plate_type: Literal["auth", "db"], plate_name: str):
 
 @app.command()
 def setmode(mode: Literal["safe", "fast"]):
-    """Switch the Claude Code operating mode. Writes to the gitignored CLAUDE.mode.md."""
-    mode_path = Path(ROOT_DIR) / "CLAUDE.mode.md"
-    mode_path.write_text(f"@CLAUDE.{mode}.md\n")
+    """Switch the Claude Code operating mode. Writes to the gitignored modes/CLAUDE.mode.md."""
+    mode_path = Path(ROOT_DIR) / "modes" / "CLAUDE.mode.md"
+    mode_path.write_text(f"@modes/CLAUDE.{mode}.md\n")
     shutil.copy(
-        Path(ROOT_DIR) / ".claude" / f"settings.{mode}.json",
+        Path(ROOT_DIR) / "modes" / f"settings.{mode}.json",
         Path(ROOT_DIR) / ".claude" / "settings.json",
     )
     typer.echo(

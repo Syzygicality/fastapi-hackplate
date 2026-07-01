@@ -7,9 +7,6 @@
             "Bash(git status *)",
             "Bash(git log *)",
             "Bash(git diff *)",
-            "Bash(git add *)",
-            "Bash(git commit *)",
-            "Bash(git push *)",
             "Bash(docker compose *)",
             "Bash(docker ps *)",
             "Bash(uv run pytest *)",
@@ -18,7 +15,11 @@
             "Bash(find . *)",
             "Bash(grep * *)"
         ],
-        "ask": [],
+        "ask": [
+            "Bash(git add *)",
+            "Bash(git commit *)",
+            "Bash(git push *)"
+        ],
         "deny": [
             "Read(./.env)",
             "Read(./.env.*)"
@@ -42,7 +43,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "echo 'Checklist: hackplate run  •  hackplate precommit'"
+                        "command": "echo 'Checklist: hackplate run  •  pytest (if pytests exist)  •  hackplate precommit'"
                     }
                 ]
             }
@@ -53,7 +54,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "echo \"$(cat CLAUDE.mode.md) in use.\""
+                        "command": "echo \"$(cat modes/CLAUDE.mode.md) in use.\""
                     }
                 ]
             }

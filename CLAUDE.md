@@ -2,7 +2,7 @@
 
 Guidelines for Claude Code when working in this repository.
 
-@CLAUDE.mode.md
+@modes/CLAUDE.mode.md
 
 ## Project Overview
 
