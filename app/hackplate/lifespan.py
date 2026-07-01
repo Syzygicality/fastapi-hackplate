@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager, AsyncExitStack
 from collections.abc import AsyncGenerator, Callable
 
+from fastapi.responses import RedirectResponse
+
 from app.hackplate.config import BackendConfig
 from app.hackplate.cors import register_cors_middleware
 from app.hackplate.exceptions import register_exception_handlers
@@ -39,6 +41,12 @@ async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
         yield
 
 
+def register_root_redirect(app: Hackplate) -> None:
+    @app.get("/", include_in_schema=False)
+    async def root_redirect() -> RedirectResponse:
+        return RedirectResponse(url="/docs")
+
+
 def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
     """
     Centralizes app configuration logic
@@ -49,6 +57,7 @@ def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
     """
     register_exception_handlers(app)
     register_cors_middleware(app)
+    register_root_redirect(app)
 
     for fn in register_functions:
         try:
