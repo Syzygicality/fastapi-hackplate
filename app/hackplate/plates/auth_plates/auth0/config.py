@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from auth0.authentication.async_token_verifier import (
     AsyncAsymmetricSignatureVerifier,
@@ -24,6 +24,7 @@ from app.hackplate.user.adapters import (
     BeanieUserDatabaseAsync,
     SQLModelUserDatabaseAsync,
 )
+from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
 from app.hackplate.user.utils import get_user_model, make_fastapi_users
 
@@ -78,7 +79,9 @@ class Auth0Plate(AuthPlate):
         except Exception:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    async def get_current_user(self, request: HackplateRequest) -> Any:
+    async def get_current_user(
+        self, request: HackplateRequest
+    ) -> AbstractUser | AbstractUserDocument:
         id_token = request.cookies.get("id_token")
         if not id_token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

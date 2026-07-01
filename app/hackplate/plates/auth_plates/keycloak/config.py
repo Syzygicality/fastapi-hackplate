@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from fastapi import status
 from fastapi.exceptions import HTTPException
@@ -20,6 +20,7 @@ from app.hackplate.user.adapters import (
     BeanieUserDatabaseAsync,
     SQLModelUserDatabaseAsync,
 )
+from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
 from app.hackplate.user.utils import get_user_model, make_fastapi_users
 
@@ -78,7 +79,9 @@ class KeycloakPlate(AuthPlate):
         except Exception:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    async def get_current_user(self, request: HackplateRequest) -> Any:
+    async def get_current_user(
+        self, request: HackplateRequest
+    ) -> AbstractUser | AbstractUserDocument:
         token = request.cookies.get("access_token")
         if not token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

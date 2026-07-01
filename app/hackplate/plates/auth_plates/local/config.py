@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from fastapi import status
 from fastapi.exceptions import HTTPException
@@ -8,6 +8,7 @@ from jwt import PyJWTError
 
 from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.toml_settings import AuthSettings
+from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.utils import make_fastapi_users, get_user_model
 from app.hackplate.user.dependencies import (
     get_sqlmodel_user_manager,
@@ -78,7 +79,9 @@ class LocalPlate(AuthPlate):
         except PyJWTError:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    async def get_current_user(self, request: HackplateRequest) -> Any:
+    async def get_current_user(
+        self, request: HackplateRequest
+    ) -> AbstractUser | AbstractUserDocument:
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
