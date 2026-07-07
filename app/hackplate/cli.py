@@ -39,11 +39,11 @@ def init():
     subprocess.run(["uv", "sync"], check=True, cwd=ROOT_DIR)
 
     env_path = Path(ROOT_DIR) / ".env"
-    template_path = Path(ROOT_DIR) / "template.env"
+    template_path = Path(ROOT_DIR) / ".env.example"
 
     if not env_path.exists():
         shutil.copy(template_path, env_path)
-        typer.echo("Created .env from template.env")
+        typer.echo("Created .env from .env.example")
 
     auth_choices = list(auth_plate_list)
     typer.echo(f"\nAvailable auth plates: {', '.join(auth_choices)}")
