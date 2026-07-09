@@ -184,11 +184,24 @@ def precommit():
         subprocess.run(["pre-commit", "run", "--all-files"])
 
 
+KEYCLOAK_COMPOSE_FILE = "app/hackplate/plates/auth_plates/keycloak/docker-compose.yml"
+
+
+def _compose_files(include_keycloak: bool = False) -> list[str]:
+    files = ["-f", "docker-compose.yml"]
+    if include_keycloak:
+        files += ["-f", KEYCLOAK_COMPOSE_FILE]
+    return files
+
+
 @app.command()
 def down(args: list[str] = typer.Argument(default=None)):
     """Stop active docker containers."""
     extra = args or []
-    subprocess.run(["docker", "compose", "--profile", "*", "down", *extra], check=True)
+    subprocess.run(
+        ["docker", "compose", *_compose_files(include_keycloak=True), "down", *extra],
+        check=True,
+    )
 
 
 @app.command()
@@ -204,17 +217,20 @@ def run(
         )
         return
 
-    command_prefix = ["docker", "compose"]
-
     load_dotenv(verbose=True)
     auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
     is_local = get_key(Path(ROOT_DIR) / ".env", "KEYCLOAK_USE_LOCAL")
-    if auth_plate and auth_plate == "keycloak" and is_local:
-        command_prefix += ["--profile", "keycloak"]
+    use_keycloak = bool(auth_plate and auth_plate == "keycloak" and is_local)
+
+    command_prefix = [
+        "docker",
+        "compose",
+        *_compose_files(include_keycloak=use_keycloak),
+    ]
 
     subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
 
-    if auth_plate and auth_plate == "keycloak" and is_local:
+    if use_keycloak:
         wait_for_keycloak()
         subprocess.run(["hackplate", "kcsync"], check=True)
 
@@ -225,8 +241,7 @@ def _allow_keycloak_http(host: str, username: str, password):
     kcadm = [
         "docker",
         "compose",
-        "--profile",
-        "keycloak",
+        *_compose_files(include_keycloak=True),
         "exec",
         "keycloak",
         "/opt/keycloak/bin/kcadm.sh",
