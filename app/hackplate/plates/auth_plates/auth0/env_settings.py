@@ -3,7 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Auth0Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="AUTH0_", extra="ignore"
+        env_file=".env",
+        env_prefix="AUTH0_",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     domain: str

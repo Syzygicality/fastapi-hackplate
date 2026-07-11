@@ -12,7 +12,10 @@ logger = logging.getLogger(__name__)
 
 class SupabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="POSTGRES_", env_file=".env", extra="ignore"
+        env_prefix="POSTGRES_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     url: str | None = None

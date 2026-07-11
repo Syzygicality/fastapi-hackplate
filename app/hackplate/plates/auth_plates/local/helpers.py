@@ -3,11 +3,11 @@ from fastapi_users.authentication import (
     JWTStrategy,
     AuthenticationBackend,
 )
-from app.hackplate.user.managers import UserEnvSettings
+from app.hackplate.plates.auth_plates.local.env_settings import LocalAuthSettings
 
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
-SECRET_KEY = UserEnvSettings().secret_key
+SECRET_KEY = LocalAuthSettings().secret_key
 
 
 def get_jwt_strategy() -> JWTStrategy:

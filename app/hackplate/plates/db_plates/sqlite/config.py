@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 
 class SQLiteSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="SQLITE_", env_file=".env", extra="ignore"
+        env_prefix="SQLITE_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     db_path: str = "db.sqlite3"

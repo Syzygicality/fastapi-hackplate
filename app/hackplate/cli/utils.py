@@ -6,6 +6,8 @@ from pathlib import Path
 
 import typer
 from dotenv import set_key
+from pydantic import ValidationError
+from pydantic_settings import BaseSettings
 
 ROOT_DIR = subprocess.run(
     ["git", "rev-parse", "--show-toplevel"],
@@ -100,3 +102,62 @@ def precommit():
     result = subprocess.run(["pre-commit", "run", "--all-files"])
     if result.returncode != 0:
         subprocess.run(["pre-commit", "run", "--all-files"])
+
+
+def assert_settings(Settings: type[BaseSettings]) -> bool:
+    try:
+        Settings()
+        return True
+    except ValidationError as e:
+        for err in e.errors():
+            field = err["loc"][0]
+            typer.echo(f"{field} is missing/empty")
+        return False
+
+
+@app.command()
+def check(
+    error: bool = typer.Option(
+        False,
+        "-e",
+        "--error",
+        help="Exit with code 1 if any .env variables are missing",
+    ),
+):
+    """Validate that .env variables are set properly"""
+    from app.hackplate.config import BackendEnvSettings
+    from app.hackplate.cors import CORSSettings
+    from app.hackplate.plates.db_plates.sqlite.config import SQLiteSettings
+    from app.hackplate.plates.db_plates.postgres.config import PostgresSettings
+    from app.hackplate.plates.db_plates.postgres.supabase_config import SupabaseSettings
+    from app.hackplate.plates.db_plates.mongo.config import MongoSettings
+    from app.hackplate.plates.auth_plates.local.env_settings import LocalAuthSettings
+    from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
+    from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
+
+    settings_map = {
+        "sqlite": SQLiteSettings,
+        "postgres": PostgresSettings,
+        "supabase": SupabaseSettings,
+        "mongo": MongoSettings,
+        "local": LocalAuthSettings,
+        "keycloak": KeycloakSettings,
+        "auth0": Auth0Settings,
+    }
+
+    all_valid = True
+
+    all_valid &= assert_settings(BackendEnvSettings)
+    if not all_valid:
+        if error:
+            raise typer.Exit(code=1)
+        raise typer.Exit(code=0)
+
+    backend_settings = BackendEnvSettings()
+
+    all_valid &= assert_settings(CORSSettings)
+    all_valid &= assert_settings(settings_map[backend_settings.db])
+    all_valid &= assert_settings(settings_map[backend_settings.auth])
+
+    if not all_valid and error:
+        raise typer.Exit(code=1)

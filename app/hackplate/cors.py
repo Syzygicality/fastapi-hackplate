@@ -10,7 +10,10 @@ class CORSSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="CORS_", env_file=".env", extra="ignore"
+        env_prefix="CORS_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     allow_origins: list[str] = ["http://localhost:5173"]

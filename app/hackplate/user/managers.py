@@ -5,17 +5,11 @@ from beanie import PydanticObjectId
 from uuid import UUID
 from typing import Any
 import bson.errors
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
+from app.hackplate.plates.auth_plates.local.env_settings import LocalAuthSettings
 
 logger = logging.getLogger(__name__)
-
-
-class UserEnvSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-    secret_key: str = "placeholder"
 
 
 class ObjectIDIDMixin:
@@ -27,7 +21,7 @@ class ObjectIDIDMixin:
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[AbstractUser, UUID]):
-    secret_key = UserEnvSettings().secret_key
+    secret_key = LocalAuthSettings().secret_key
     reset_password_token_secret = secret_key + "_reset"
     verification_token_secret = secret_key + "_verify"
 
@@ -48,7 +42,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[AbstractUser, UUID]):
 class UserDocumentManager(
     ObjectIDIDMixin, BaseUserManager[AbstractUserDocument, PydanticObjectId]
 ):
-    secret_key = UserEnvSettings().secret_key
+    secret_key = LocalAuthSettings().secret_key
     reset_password_token_secret = secret_key + "_reset"
     verification_token_secret = secret_key + "_verify"
 

@@ -34,11 +34,14 @@ class BackendEnvSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="HACKPLATE_", env_file=".env", extra="ignore"
+        env_prefix="HACKPLATE_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
-    db: str | None = "sqlite"
-    auth: str | None = "local"
+    db: str = "sqlite"
+    auth: str = "local"
 
     @model_validator(mode="after")
     def validate_plates(self) -> Self:

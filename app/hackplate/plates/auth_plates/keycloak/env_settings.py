@@ -3,7 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class KeycloakSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="KEYCLOAK_", extra="ignore"
+        env_file=".env",
+        env_prefix="KEYCLOAK_",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     admin_username: str = "admin"

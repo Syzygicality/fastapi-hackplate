@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 class MongoSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="MONGO_", env_file=".env", extra="ignore"
+        env_prefix="MONGO_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
     url: str | None = None

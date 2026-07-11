@@ -8,7 +8,7 @@ import httpx
 import typer
 from dotenv import get_key, load_dotenv, set_key
 
-from app.hackplate.cli.utils import ROOT_DIR
+from app.hackplate.cli.utils import ROOT_DIR, check
 
 SENSITIVE_KEYS = {"secret", "registrationAccessToken"}
 
@@ -81,6 +81,8 @@ def run(
     args: list[str] = typer.Argument(default=None),
 ):
     """Start the uvicorn server, with the option to use docker. -m/--mode selects dev or prod (default: dev)."""
+    check(error=True)
+
     extra = args or []
 
     if not docker:
