@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager, AsyncExitStack
 from collections.abc import AsyncGenerator, Callable
 
@@ -9,6 +10,8 @@ from app.hackplate.exceptions import register_exception_handlers
 from app.hackplate.logging import setup_logging
 from app.hackplate.hackplate_types import Hackplate
 from app.hackplate.toml_settings import BackendTOMLSettings
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -23,8 +26,14 @@ async def hackplate_base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 @asynccontextmanager
 async def hackplate_config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     setup_logging()
-    await app.state.config.auth.register_auth_routes(app)
     await app.state.config.db.connect()
+    logger.info("Successful database connection!")
+    if not await app.state.config.db.ping():
+        logger.exception("Database ping failed.")
+        await app.state.config.db.disconnect()
+        raise RuntimeError("Database ping failed.")
+    logger.info("Database: PONG")
+    await app.state.config.auth.register_auth_routes(app)
     yield
     await app.state.config.db.disconnect()
 

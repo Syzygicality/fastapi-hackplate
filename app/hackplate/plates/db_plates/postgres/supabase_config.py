@@ -45,14 +45,15 @@ class SupabasePlate(DatabasePlate):
             base = f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
             url = f"{base}?ssl=require" if s.ssl_required else base
         self.engine = create_async_engine(url)
-        self._session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
+        self._session_factory = async_sessionmaker(
+            self.engine, class_=AsyncSession, expire_on_commit=False
+        )
         if not self.toml_settings.alembic:
             logger.info(
                 "Alembic disabled, using SQLModel metadata to create database models..."
             )
             async with self.engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
-            logger.info("Success!")
 
     async def disconnect(self) -> None:
         if self.engine:
@@ -63,15 +64,13 @@ class SupabasePlate(DatabasePlate):
 
     async def ping(self) -> bool:
         if not self._session_factory:
-            logger.warning("Ping failed, session factory is None")
+            logger.warning("Ping failed, session factory not found.")
             return False
         try:
             async with self._session_factory() as session:
                 await session.exec(select(1))
-            logger.info("PONG")
             return True
         except Exception:
-            logger.exception("Ping failed")
             return False
 
     async def get_db(self) -> AsyncSession:

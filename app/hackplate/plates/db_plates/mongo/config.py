@@ -74,14 +74,12 @@ class MongoPlate(DatabasePlate):
 
     async def ping(self) -> bool:
         if not self.client:
-            logger.warning("Ping failed, client is None")
+            logger.warning("Ping failed, client not found.")
             return False
         try:
             await self.client.admin.command("ping")
-            logger.info("PONG")
             return True
         except Exception:
-            logger.exception("Ping failed")
             return False
 
     async def get_db(self) -> AsyncDatabase:
