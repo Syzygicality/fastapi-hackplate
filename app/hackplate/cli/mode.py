@@ -10,6 +10,18 @@ app = typer.Typer()
 
 
 @app.command()
+def getmode():
+    """Show the current Claude Code operating mode."""
+    mode_path = Path(ROOT_DIR) / "modes" / "CLAUDE.mode.md"
+    if not mode_path.exists():
+        typer.echo("mode: (not set)")
+        return
+    content = mode_path.read_text().strip()
+    mode = content.removeprefix("@modes/CLAUDE.").removesuffix(".md")
+    typer.echo(f"mode: {mode}")
+
+
+@app.command()
 def setmode(mode: Literal["safe", "fast"]):
     """Switch the Claude Code operating mode. Writes to the gitignored modes/CLAUDE.mode.md."""
     mode_path = Path(ROOT_DIR) / "modes" / "CLAUDE.mode.md"
@@ -21,15 +33,3 @@ def setmode(mode: Literal["safe", "fast"]):
     typer.echo(
         f"Claude mode set to '{mode}'. Restart your session for {mode} mode to take effect"
     )
-
-
-@app.command()
-def getmode():
-    """Show the current Claude Code operating mode."""
-    mode_path = Path(ROOT_DIR) / "modes" / "CLAUDE.mode.md"
-    if not mode_path.exists():
-        typer.echo("mode: (not set)")
-        return
-    content = mode_path.read_text().strip()
-    mode = content.removeprefix("@modes/CLAUDE.").removesuffix(".md")
-    typer.echo(f"mode: {mode}")
