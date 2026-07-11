@@ -123,6 +123,7 @@ Never put deployment-varying values in `pyproject.toml` or structural decisions 
 | `hackplate setplate auth <plate>` | Switch auth plate |
 | `hackplate setplate db <plate>` | Switch db plate |
 | `hackplate setmode safe\|fast` | Switch Claude Code operating mode |
+| `hackplate getmode` | Show the current Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a vertical slice under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
 | `hackplate regenkey` | Regenerate `SECRET_KEY` in `.env` |

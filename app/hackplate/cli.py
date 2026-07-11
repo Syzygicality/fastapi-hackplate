@@ -163,6 +163,18 @@ def setmode(mode: Literal["safe", "fast"]):
 
 
 @app.command()
+def getmode():
+    """Show the current Claude Code operating mode."""
+    mode_path = Path(ROOT_DIR) / "modes" / "CLAUDE.mode.md"
+    if not mode_path.exists():
+        typer.echo("mode: (not set)")
+        return
+    content = mode_path.read_text().strip()
+    mode = content.removeprefix("@modes/CLAUDE.").removesuffix(".md")
+    typer.echo(f"mode: {mode}")
+
+
+@app.command()
 def clean():
     """Remove cache/metadata directories (.ruff_cache, .pytest_cache, __pycache__, *.egg-info)."""
     root = Path(ROOT_DIR)
