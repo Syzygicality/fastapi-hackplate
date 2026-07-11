@@ -37,10 +37,9 @@ class KeycloakPlate(AuthPlate):
             connection=KeycloakOpenIDConnection(
                 server_url=self.env_settings.host,
                 realm_name=self.env_settings.realm,
-                username=self.env_settings.admin_username,
-                password=self.env_settings.admin_password,
                 client_id=self.env_settings.client_id,
                 client_secret_key=self.env_settings.client_secret,
+                grant_type="client_credentials",
                 verify=True,
             )
         )
