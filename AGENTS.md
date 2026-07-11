@@ -2,4 +2,4 @@
 
 ## Instructions
 
-Refer to [CLAUDE.md](CLAUDE.md) for instrucitons
+Refer to [CLAUDE.md](CLAUDE.md) for instructions

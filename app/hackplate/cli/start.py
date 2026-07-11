@@ -111,6 +111,8 @@ def run(
     if use_keycloak:
         wait_for_keycloak()
         subprocess.run(["hackplate", "kcsync", "--mode", mode], check=True)
+        api_service = "api" if mode == "dev" else "api-prod"
+        subprocess.run([*command_prefix, "up", "-d", api_service], check=True)
 
     subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
@@ -196,7 +198,7 @@ def kcsync(
         raise typer.Exit(code=1)
     finally:
         if kc_use_local and mode == "dev":
-            # Keep admin portal open during development. We assume that master realm will be protected by HTTPS when deployed to production
+            # Keep admin portal open during development. We assume that master realm will be protected by HTTPS when deployed to production.
             keycloak_admin.connection.realm_name = "master"
             keycloak_admin.update_realm("master", {"sslRequired": "EXTERNAL"})
 
