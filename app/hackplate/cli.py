@@ -184,14 +184,63 @@ def precommit():
         subprocess.run(["pre-commit", "run", "--all-files"])
 
 
-KEYCLOAK_COMPOSE_FILE = "app/hackplate/plates/auth_plates/keycloak/docker-compose.yml"
+KEYCLOAK_COMPOSE_FILE = (
+    "app/hackplate/plates/auth_plates/keycloak/docker-compose.keycloak.yml"
+)
 
 
-def _compose_files(include_keycloak: bool = False) -> list[str]:
+def _compose_files(use_keycloak: bool) -> list[str]:
     files = ["-f", "docker-compose.yml"]
-    if include_keycloak:
+    if use_keycloak:
         files += ["-f", KEYCLOAK_COMPOSE_FILE]
     return files
+
+
+def _keycloak_service(mode: Literal["dev", "prod"]) -> str:
+    return "keycloak" if mode == "dev" else "keycloak-prod"
+
+
+@app.command()
+def run(
+    mode: Literal["dev", "prod"] = typer.Option(
+        "dev", "-m", "--mode", help="Run mode: dev (hot reload) or prod."
+    ),
+    docker: bool = typer.Option(False, "-dc", "--docker-compose"),
+    args: list[str] = typer.Argument(default=None),
+):
+    """Start the uvicorn server, with the option to use docker. -m/--mode selects dev or prod (default: dev)."""
+    extra = args or []
+
+    if not docker:
+        uvicorn_cmd = ["uv", "run", "uvicorn", "app.main:app"]
+        if mode == "dev":
+            uvicorn_cmd += ["--reload"]
+        else:
+            workers = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_WORKERS") or "4"
+            uvicorn_cmd += ["--host", "0.0.0.0", "--port", "8000", "--workers", workers]
+        subprocess.run([*uvicorn_cmd, *extra], check=True)
+        return
+
+    load_dotenv(verbose=True)
+    auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
+    is_local = get_key(Path(ROOT_DIR) / ".env", "KEYCLOAK_USE_LOCAL")
+    use_keycloak = bool(auth_plate == "keycloak" and is_local)
+
+    command_prefix = [
+        "docker",
+        "compose",
+        *_compose_files(use_keycloak),
+        "--profile",
+        mode,
+    ]
+
+    subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
+
+    if use_keycloak:
+        wait_for_keycloak()
+        subprocess.run(["hackplate", "kcsync", "--mode", mode], check=True)
+
+    subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
 
 @app.command()
@@ -199,51 +248,26 @@ def down(args: list[str] = typer.Argument(default=None)):
     """Stop active docker containers."""
     extra = args or []
     subprocess.run(
-        ["docker", "compose", *_compose_files(include_keycloak=True), "down", *extra],
+        [
+            "docker",
+            "compose",
+            *_compose_files(use_keycloak=True),
+            "--profile",
+            "*",
+            "down",
+            *extra,
+        ],
         check=True,
     )
 
 
-@app.command()
-def run(
-    docker: bool = typer.Option(False, "-dc", "--docker-compose"),
-    args: list[str] = typer.Argument(default=None),
-):
-    """Start the uvicorn development server with hot reload, with the option to use docker."""
-    extra = args or []
-    if not docker:
-        subprocess.run(
-            ["uv", "run", "uvicorn", "app.main:app", "--reload", *extra], check=True
-        )
-        return
-
-    load_dotenv(verbose=True)
-    auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
-    is_local = get_key(Path(ROOT_DIR) / ".env", "KEYCLOAK_USE_LOCAL")
-    use_keycloak = bool(auth_plate and auth_plate == "keycloak" and is_local)
-
-    command_prefix = [
-        "docker",
-        "compose",
-        *_compose_files(include_keycloak=use_keycloak),
-    ]
-
-    subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
-
-    if use_keycloak:
-        wait_for_keycloak()
-        subprocess.run(["hackplate", "kcsync"], check=True)
-
-    subprocess.run([*command_prefix, "logs", "-f"], check=True)
-
-
-def _allow_keycloak_http(host: str, username: str, password):
+def _allow_keycloak_http(host: str, username: str, password: str, service: str):
     kcadm = [
         "docker",
         "compose",
-        *_compose_files(include_keycloak=True),
+        *_compose_files(use_keycloak=True),
         "exec",
-        "keycloak",
+        service,
         "/opt/keycloak/bin/kcadm.sh",
     ]
     subprocess.run(
@@ -285,6 +309,12 @@ def wait_for_keycloak(host: str | None = None, retries: int = 20, delay: float =
 
 @app.command()
 def kcsync(
+    mode: Literal["dev", "prod"] = typer.Option(
+        "dev",
+        "-m",
+        "--mode",
+        help="Which running mode's Keycloak container to sync from.",
+    ),
     host: str | None = typer.Option(None, "-h", "--host"),
     realm: str | None = typer.Option(None, "-r", "--realm"),
     username: str | None = typer.Option(None, "-u", "--username"),
@@ -300,7 +330,7 @@ def kcsync(
     kc_username = username or settings.admin_username
     kc_password = password or settings.admin_password
 
-    _allow_keycloak_http(kc_host, kc_username, kc_password)
+    _allow_keycloak_http(kc_host, kc_username, kc_password, _keycloak_service(mode))
 
     try:
         token_res = httpx.post(

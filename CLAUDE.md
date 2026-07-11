@@ -29,8 +29,8 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 
 | Command | Description |
 |---|---|
-| `hackplate run` | Start uvicorn with hot reload |
-| `hackplate run --docker-compose` | Start full stack via docker compose |
+| `hackplate run` | Start uvicorn (`-m dev`\|`prod`, default `dev`; `dev` hot-reloads, `prod` runs `HACKPLATE_WORKERS` workers) |
+| `hackplate run --docker-compose` | Start full stack via docker compose (`-m dev`\|`prod` selects the compose profile) |
 | `hackplate init` | First-time repo setup (runs once) |
 | `hackplate precommit` | Install and run pre-commit on all files |
 | `hackplate clean` | Remove `.ruff_cache`, `.pytest_cache`, `__pycache__`, `*.egg-info` |
@@ -147,3 +147,5 @@ Key `.env` variables by plate:
 | `auth0` | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_AUDIENCE` |
 | `keycloak` | `KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ADMIN_USERNAME/PASSWORD` |
 | `local` | `SECRET_KEY` (auto-set by `hackplate init` or `hackplate regenkey`) |
+
+`HACKPLATE_WORKERS` sets the number of uvicorn worker processes used by `hackplate run -m prod` (default `4`). In `--docker-compose` mode it's passed to the `api-prod` container as `WEB_CONCURRENCY`, which uvicorn reads natively.
