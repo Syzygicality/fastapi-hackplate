@@ -16,7 +16,7 @@ class KeycloakSettings(BaseSettings):
     host: str = "http://keycloak:8080"
     external_url: str = "http://localhost:8080"
     client_id: str = "hackplate"
-    client_secret: str
+    client_secret: str = "client_secret_placeholder"
     callback_url: str = "http://localhost:8000/auth/callback"
     redirect_uri: str = "http://localhost:8000/docs"
     secure_cookies: bool = False

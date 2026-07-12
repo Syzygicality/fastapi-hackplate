@@ -669,8 +669,8 @@
         }
       ],
       "defaultClientScopes": [
-        "service_account",
         "web-origins",
+        "service_account",
         "acr",
         "roles",
         "profile",
@@ -1539,14 +1539,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-usermodel-property-mapper",
-            "saml-user-property-mapper",
-            "saml-role-list-mapper",
             "oidc-sha256-pairwise-sub-mapper",
+            "oidc-usermodel-attribute-mapper",
+            "oidc-usermodel-property-mapper",
             "oidc-address-mapper",
             "oidc-full-name-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper"
+            "saml-user-property-mapper",
+            "saml-user-attribute-mapper",
+            "saml-role-list-mapper"
           ]
         }
       },
@@ -1558,14 +1558,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-address-mapper",
-            "oidc-full-name-mapper",
             "oidc-usermodel-attribute-mapper",
-            "oidc-sha256-pairwise-sub-mapper",
-            "saml-role-list-mapper",
-            "oidc-usermodel-property-mapper",
             "saml-user-attribute-mapper",
-            "saml-user-property-mapper"
+            "oidc-full-name-mapper",
+            "oidc-address-mapper",
+            "oidc-usermodel-property-mapper",
+            "saml-user-property-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
+            "saml-role-list-mapper"
           ]
         }
       },

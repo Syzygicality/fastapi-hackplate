@@ -10,6 +10,7 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: true
     command: start-dev --import-realm
     volumes:
       - keycloak_data:/opt/keycloak/data
@@ -26,10 +27,21 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: true
     command: start --optimized --import-realm
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./app/hackplate/plates/auth_plates/keycloak/settings.json:/opt/keycloak/data/import/realm.json
+
+  api:
+    depends_on:
+      keycloak:
+        condition: service_started
+
+  api-prod:
+    depends_on:
+      keycloak-prod:
+        condition: service_started
 
 volumes:
   keycloak_data:
