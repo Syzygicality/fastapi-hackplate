@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 import asyncio
 import secrets
+
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
 from auth0.authentication import GetToken, Users
@@ -15,8 +13,7 @@ from fastapi_users import BaseUserManager
 from app.hackplate.user.schemas import UserCreate
 from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
 
-if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import HackplateRequest
+from app.hackplate.hackplate_types import HackplateRequest
 
 
 def auth0_router_factory(

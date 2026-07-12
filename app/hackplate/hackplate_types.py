@@ -1,9 +1,13 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from fastapi import FastAPI, Request, WebSocket
 from starlette.datastructures import State
 from typing import Callable, AsyncContextManager
 
-from app.hackplate.config import BackendConfig
-from app.hackplate.toml_settings import BackendTOMLSettings
+if TYPE_CHECKING:
+    from app.hackplate.config import BackendConfig
+    from app.hackplate.toml_settings import BackendTOMLSettings
 
 
 class _AppState(State):

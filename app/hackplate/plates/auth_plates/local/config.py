@@ -1,6 +1,3 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
-
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from fastapi_users.jwt import decode_jwt
@@ -24,9 +21,7 @@ from app.hackplate.user.adapters import (
     BeanieUserDatabaseAsync,
 )
 from app.hackplate.user.managers import UserManager, UserDocumentManager
-
-if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import Hackplate, HackplateRequest
+from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 
 _JWT_AUDIENCE = ["fastapi-users:auth"]
 _JWT_ALGORITHM = "HS256"
@@ -101,3 +96,6 @@ class LocalPlate(AuthPlate):
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         return user
+
+    async def ping(self) -> bool:
+        return bool(self._secret)

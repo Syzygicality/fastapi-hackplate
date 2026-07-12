@@ -18,7 +18,7 @@ from app.main import app
 @pytest.mark.asyncio
 async def test_example():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        response = await client.get("/health")
+        response = await client.get("/ping")
     assert response.status_code == 200
 ```
 

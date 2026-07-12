@@ -1,11 +1,8 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 
-if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import Hackplate, HackplateRequest
+from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 
 
 class AuthPlate(ABC):
@@ -23,6 +20,9 @@ class AuthPlate(ABC):
     ) -> AbstractUser | AbstractUserDocument:
         """Verify and return the authenticated user. Raises 401 on failure."""
         ...
+
+    @abstractmethod
+    async def ping(self) -> bool: ...
 
 
 class DatabasePlate(ABC):

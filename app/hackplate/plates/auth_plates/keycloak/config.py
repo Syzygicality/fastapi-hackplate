@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
@@ -24,8 +20,7 @@ from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
 from app.hackplate.user.utils import get_user_model, make_fastapi_users
 
-if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import Hackplate, HackplateRequest
+from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 
 
 class KeycloakPlate(AuthPlate):
@@ -100,3 +95,10 @@ class KeycloakPlate(AuthPlate):
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         return user
+
+    async def ping(self) -> bool:
+        try:
+            await self.keycloak_openid.a_well_known()
+            return True
+        except Exception:
+            return False

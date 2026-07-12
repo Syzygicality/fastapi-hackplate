@@ -1,6 +1,5 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+import logging
+import httpx
 
 from auth0.authentication.async_token_verifier import (
     AsyncAsymmetricSignatureVerifier,
@@ -28,8 +27,10 @@ from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
 from app.hackplate.user.utils import get_user_model, make_fastapi_users
 
-if TYPE_CHECKING:
-    from app.hackplate.hackplate_types import Hackplate, HackplateRequest
+from app.hackplate.hackplate_types import Hackplate, HackplateRequest
+
+logger = logging.getLogger(__name__)
+_JWKS_TIMEOUT_SECONDS = 5.0
 
 
 class Auth0Plate(AuthPlate):
@@ -92,12 +93,22 @@ class Auth0Plate(AuthPlate):
 
         if self.db_name == "mongo":
             user_db = BeanieUserDatabaseAsync(get_user_model())
-            user = await user_db.get_by_sub(payload["sub"])
+            user: AbstractUserDocument = await user_db.get_by_sub(payload["sub"])
         else:
             async with request.app.state.config.db.get_db() as session:
                 user_db = SQLModelUserDatabaseAsync(session, get_user_model())
-                user = await user_db.get_by_sub(payload["sub"])
+                user: AbstractUser = await user_db.get_by_sub(payload["sub"])
 
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         return user
+
+    async def ping(self) -> bool:
+        jwks_url = f"https://{self.env_settings.domain}/.well-known/jwks.json"
+        try:
+            async with httpx.AsyncClient(timeout=_JWKS_TIMEOUT_SECONDS) as client:
+                response = await client.get(jwks_url)
+            response.raise_for_status()
+            return True
+        except Exception:
+            return False
