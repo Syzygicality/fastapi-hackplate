@@ -21,7 +21,5 @@ services:
       - "8000:8000"
     env_file:
       - .env
-    environment:
-      WEB_CONCURRENCY: ${HACKPLATE_WORKERS:-4}
     extra_hosts:
       - "host.docker.internal:host-gateway"
