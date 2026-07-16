@@ -69,6 +69,8 @@ class LocalPlate(AuthPlate):
         if not auth_header.startswith("Bearer "):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         token = auth_header[7:]
+        if token in get_jwt_strategy()._revoked:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         try:
             decode_jwt(token, self._secret, _JWT_AUDIENCE, [_JWT_ALGORITHM])
         except PyJWTError:
