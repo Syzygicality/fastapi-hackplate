@@ -73,5 +73,5 @@ class PostgresPlate(DatabasePlate):
         except Exception:
             return False
 
-    async def get_db(self) -> AsyncSession:
+    def get_db(self) -> AsyncSession:
         return self._session_factory()
