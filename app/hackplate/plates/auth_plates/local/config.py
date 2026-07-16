@@ -6,7 +6,11 @@ from jwt import PyJWTError
 from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.toml_settings import AuthSettings
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
-from app.hackplate.user.utils import make_fastapi_users, get_user_model
+from app.hackplate.user.utils import (
+    make_fastapi_users,
+    get_user_model,
+    make_delete_me_router,
+)
 from app.hackplate.user.dependencies import (
     get_sqlmodel_user_manager,
     get_beanie_user_manager,
@@ -57,6 +61,11 @@ class LocalPlate(AuthPlate):
             self.fastapi_users.get_verify_router(UserRead),
             prefix="/auth",
             tags=["auth"],
+        )
+        app.include_router(
+            make_delete_me_router(self.fastapi_users),
+            prefix="/users",
+            tags=["users"],
         )
         app.include_router(
             self.fastapi_users.get_users_router(UserRead, UserUpdate),

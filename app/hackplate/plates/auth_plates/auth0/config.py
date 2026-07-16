@@ -25,7 +25,11 @@ from app.hackplate.user.adapters import (
 )
 from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 from app.hackplate.user.schemas import UserDocumentRead, UserRead, UserUpdate
-from app.hackplate.user.utils import get_user_model, make_fastapi_users
+from app.hackplate.user.utils import (
+    get_user_model,
+    make_delete_me_router,
+    make_fastapi_users,
+)
 
 from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 
@@ -64,6 +68,11 @@ class Auth0Plate(AuthPlate):
         app.include_router(
             auth0_router_factory(self.env_settings, self.manager_dependency),
             tags=["auth"],
+        )
+        app.include_router(
+            make_delete_me_router(self.fastapi_users),
+            prefix="/users",
+            tags=["users"],
         )
         app.include_router(
             self.fastapi_users.get_users_router(self.read_schema, UserUpdate),
