@@ -16,13 +16,13 @@
             "Bash(uv run alembic *)",
             "Bash(pre-commit *)",
             "Bash(find . *)",
-            "Bash(grep * *)"
-        ],
-        "ask": [],
-        "deny": [
-            "Read(./.env)",
+            "Bash(grep * *)",
             "Read(./.env.*)"
-        ]
+        ],
+        "ask": [
+            "Read(./.env)"
+        ],
+        "deny": []
     },
     "hooks": {
         "PostToolUse": [
