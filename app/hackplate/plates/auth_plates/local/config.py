@@ -19,7 +19,12 @@ from app.hackplate.plates.auth_plates.local.helpers import (
     auth_backend,
     get_jwt_strategy,
 )
-from app.hackplate.user.schemas import UserCreate, UserRead, UserUpdate
+from app.hackplate.user.schemas import (
+    UserCreate,
+    UserDocumentRead,
+    UserRead,
+    UserUpdate,
+)
 from app.hackplate.user.adapters import (
     SQLModelUserDatabaseAsync,
     BeanieUserDatabaseAsync,
@@ -39,6 +44,7 @@ class LocalPlate(AuthPlate):
         if db_name == "mongo":
             manager_dep = get_beanie_user_manager
 
+        self.read_schema = UserDocumentRead if db_name == "mongo" else UserRead
         self.fastapi_users = make_fastapi_users(auth_backend, manager_dep)
 
     async def register_auth_routes(self, app: Hackplate) -> None:
@@ -48,7 +54,7 @@ class LocalPlate(AuthPlate):
             tags=["auth"],
         )
         app.include_router(
-            self.fastapi_users.get_register_router(UserRead, UserCreate),
+            self.fastapi_users.get_register_router(self.read_schema, UserCreate),
             prefix="/auth",
             tags=["auth"],
         )
@@ -58,7 +64,7 @@ class LocalPlate(AuthPlate):
             tags=["auth"],
         )
         app.include_router(
-            self.fastapi_users.get_verify_router(UserRead),
+            self.fastapi_users.get_verify_router(self.read_schema),
             prefix="/auth",
             tags=["auth"],
         )
@@ -68,7 +74,7 @@ class LocalPlate(AuthPlate):
             tags=["users"],
         )
         app.include_router(
-            self.fastapi_users.get_users_router(UserRead, UserUpdate),
+            self.fastapi_users.get_users_router(self.read_schema, UserUpdate),
             prefix="/users",
             tags=["users"],
         )
