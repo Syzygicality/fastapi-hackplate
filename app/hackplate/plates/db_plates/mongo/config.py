@@ -35,10 +35,18 @@ class MongoPlate(DatabasePlate):
     """
     Database plate for MongoDB using Beanie ODM and pymongo async.
 
-    Register Beanie Document models before app startup by appending to
-    `document_models`, e.g. in app/lifespan.py:
+    Feature Document models under app/<feature>/models.py are discovered
+    automatically via migrations/register_models.py — no manual step needed.
 
-        app.state.config.db.document_models.append(MyDocument)
+    For Document models defined elsewhere (e.g. imported from a third-party
+    package), append them before startup in the *pre*-hackplate hook, since
+    that's the one guaranteed to run before connect()/init_beanie():
+
+        # app/lifespan.py
+        @asynccontextmanager
+        async def pre_hackplate_lifespan(app: Hackplate):
+            app.state.config.db.document_models.append(MyDocument)
+            yield
     """
 
     def __init__(self, toml_settings: DatabaseSettings):
@@ -49,7 +57,9 @@ class MongoPlate(DatabasePlate):
         self.document_models: list[Type[Document]] = []
 
     async def connect(self) -> None:
-        logger.info("Connecting to mongodb...")
+        logger.info("Connecting to MongoDB...")
+        import migrations.register_models  # noqa: F401
+
         s = self.env_settings
         url = (
             s.url
@@ -62,8 +72,31 @@ class MongoPlate(DatabasePlate):
             url += "/?tls=true"
         self.client = AsyncMongoClient(url)
         self.db = self.client[s.name]
+
         self.document_models.append(get_user_model())
+        self.document_models.extend(self._discover_document_models())
         await init_beanie(database=self.db, document_models=self.document_models)
+
+    def _discover_document_models(self) -> list[Type[Document]]:
+        """
+        Collect every concrete Beanie Document subclass pulled in by importing
+        migrations.register_models. A class counts as "concrete" if nothing
+        subclasses it further — this skips abstract intermediates like
+        AbstractUserDocument while still catching UserDocument, a custom user
+        model, or any feature-defined Document. Anything already in
+        self.document_models (i.e. the active user model) is deduped out.
+        """
+        already = set(self.document_models)
+        seen: set[Type[Document]] = set()
+
+        def walk(cls: Type[Document]) -> None:
+            for sub in cls.__subclasses__():
+                if sub not in seen:
+                    seen.add(sub)
+                    walk(sub)
+
+        walk(Document)
+        return [cls for cls in seen if not cls.__subclasses__() and cls not in already]
 
     async def disconnect(self) -> None:
         if self.client:
