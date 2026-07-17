@@ -78,11 +78,15 @@ class Auth0Plate(AuthPlate):
             auth0_router_factory(self.env_settings, self.manager_dependency),
             tags=["auth"],
         )
-        make_delete_me_router(
-            self.fastapi_users,
-            self.get_current_user,
-            cookie_names=["id_token", "access_token"],
-            secure_cookies=self.env_settings.secure_cookies,
+        app.include_router(
+            make_delete_me_router(
+                self.fastapi_users,
+                self.get_current_user,
+                cookie_names=["id_token", "access_token"],
+                secure_cookies=self.env_settings.secure_cookies,
+            ),
+            prefix="/users",
+            tags=["users"],
         )
 
         users_router = APIRouter()

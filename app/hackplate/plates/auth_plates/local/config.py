@@ -104,12 +104,12 @@ class LocalPlate(AuthPlate):
         if self.db_name == "mongo":
             user_db = BeanieUserDatabaseAsync(get_user_model())
             user_manager = UserDocumentManager(user_db)
-            user = await strategy.read_token(token, user_manager)
+            user: AbstractUserDocument = await strategy.read_token(token, user_manager)
         else:
             async with request.app.state.config.db.get_db() as session:
                 user_db = SQLModelUserDatabaseAsync(session, get_user_model())
                 user_manager = UserManager(user_db)
-                user = await strategy.read_token(token, user_manager)
+                user: AbstractUser = await strategy.read_token(token, user_manager)
 
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
