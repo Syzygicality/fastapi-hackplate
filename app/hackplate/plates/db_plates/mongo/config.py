@@ -6,6 +6,7 @@ from pymongo import AsyncMongoClient
 from pymongo.asynchronous.database import AsyncDatabase
 
 from app.hackplate.plates.abstract_plates import DatabasePlate
+from app.hackplate.plates.db_plates.mongo.registry import get_registered_documents
 from app.hackplate.toml_settings import DatabaseSettings
 from app.hackplate.user.utils import get_user_model
 
@@ -74,29 +75,9 @@ class MongoPlate(DatabasePlate):
         self.db = self.client[s.name]
 
         self.document_models.append(get_user_model())
-        self.document_models.extend(self._discover_document_models())
+        self.document_models.extend(get_registered_documents())
+        self.document_models = list(dict.fromkeys(self.document_models))
         await init_beanie(database=self.db, document_models=self.document_models)
-
-    def _discover_document_models(self) -> list[Type[Document]]:
-        """
-        Collect every concrete Beanie Document subclass pulled in by importing
-        migrations.register_models. A class counts as "concrete" if nothing
-        subclasses it further — this skips abstract intermediates like
-        AbstractUserDocument while still catching UserDocument, a custom user
-        model, or any feature-defined Document. Anything already in
-        self.document_models (i.e. the active user model) is deduped out.
-        """
-        already = set(self.document_models)
-        seen: set[Type[Document]] = set()
-
-        def walk(cls: Type[Document]) -> None:
-            for sub in cls.__subclasses__():
-                if sub not in seen:
-                    seen.add(sub)
-                    walk(sub)
-
-        walk(Document)
-        return [cls for cls in seen if not cls.__subclasses__() and cls not in already]
 
     async def disconnect(self) -> None:
         if self.client:

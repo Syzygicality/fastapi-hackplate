@@ -18,6 +18,10 @@ def startfeature(feature_name: str):
         typer.BadParameter(f"feature directory /{feature_name} already exists.")
     for filename in ["routes.py", "schemas.py", "crud.py", "models.py", "__init__.py"]:
         (feature_dir / filename).touch()
+    models_file = feature_dir / "models.py"
+    models_file.write_text(
+        "from app.hackplate.plates.db_plates.mongo.registry import register_document  # noqa: F401\n"
+    )
     registry = Path(ROOT_DIR) / "migrations" / "register_models.py"
     current = registry.read_text()
     import_line = f"import app.{feature_name}.models  # noqa: F401\n"
