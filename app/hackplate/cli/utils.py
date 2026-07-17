@@ -19,9 +19,60 @@ ROOT_DIR = subprocess.run(
 app = typer.Typer()
 
 
+def _step(msg: str) -> None:
+    typer.echo(f"\n→ {msg}")
+
+
+def _ensure_uv() -> None:
+    if not shutil.which("uv"):
+        _step("Installing uv...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True)
+    _step("Running uv sync...")
+    subprocess.run(["uv", "sync"], check=True, cwd=ROOT_DIR)
+
+
+def _ensure_env_file() -> Path:
+    env_path = Path(ROOT_DIR) / ".env"
+    template_path = Path(ROOT_DIR) / ".env.example"
+
+    if env_path.exists():
+        return env_path
+
+    if not template_path.exists():
+        typer.echo(
+            f"error: {template_path.name} not found — cannot create .env. "
+            "Restore .env.example or create .env manually, then re-run `hackplate init`.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    shutil.copy(template_path, env_path)
+    _step("Created .env from .env.example")
+    return env_path
+
+
+def _prompt_plate(label: str, choices: list[str], default: str) -> str:
+    typer.echo(f"\nAvailable {label} plates: {', '.join(choices)}")
+    choice = typer.prompt(label.capitalize(), default=default)
+    while choice not in choices:
+        typer.echo(f"Invalid choice. Pick one of: {', '.join(choices)}")
+        choice = typer.prompt(label.capitalize(), default=default)
+    return choice
+
+
+def _warn_if_docker_missing(auth_plate: str) -> None:
+    if auth_plate == "keycloak" and not shutil.which("docker"):
+        typer.echo(
+            "\nwarning: the keycloak plate needs Docker for local dev "
+            "(`hackplate run --docker-compose`), but `docker` isn't on PATH.",
+            err=True,
+        )
+
+
 @app.command()
 def init():
     """Initialize the repo for development. Prompts for plates and sets up .env. Runs once."""
+    from app.hackplate.cli.mode import write_mode_files
     from app.hackplate.config import database_plate_list, auth_plate_list
 
     sentinel = Path(ROOT_DIR) / ".hackplate_init"
@@ -29,33 +80,12 @@ def init():
         typer.echo("Already initialized. Delete .hackplate_init to re-run.", err=True)
         raise typer.Exit(code=1)
 
-    if not shutil.which("uv"):
-        typer.echo("Installing uv...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True)
+    _ensure_uv()
+    env_path = _ensure_env_file()
 
-    typer.echo("Running uv sync...")
-    subprocess.run(["uv", "sync"], check=True, cwd=ROOT_DIR)
-
-    env_path = Path(ROOT_DIR) / ".env"
-    template_path = Path(ROOT_DIR) / ".env.example"
-
-    if not env_path.exists():
-        shutil.copy(template_path, env_path)
-        typer.echo("Created .env from .env.example")
-
-    auth_choices = list(auth_plate_list)
-    typer.echo(f"\nAvailable auth plates: {', '.join(auth_choices)}")
-    auth_plate = typer.prompt("Auth plate", default="local")
-    while auth_plate not in auth_choices:
-        typer.echo(f"Invalid choice. Pick one of: {', '.join(auth_choices)}")
-        auth_plate = typer.prompt("Auth plate", default="local")
-
-    db_choices = list(database_plate_list)
-    typer.echo(f"\nAvailable database plates: {', '.join(db_choices)}")
-    db_plate = typer.prompt("Database plate", default="sqlite")
-    while db_plate not in db_choices:
-        typer.echo(f"Invalid choice. Pick one of: {', '.join(db_choices)}")
-        db_plate = typer.prompt("Database plate", default="sqlite")
+    auth_plate = _prompt_plate("auth", list(auth_plate_list), "local")
+    db_plate = _prompt_plate("database", list(database_plate_list), "sqlite")
+    _warn_if_docker_missing(auth_plate)
 
     set_key(env_path, "HACKPLATE_AUTH", auth_plate, quote_mode="never")
     set_key(env_path, "HACKPLATE_DB", db_plate, quote_mode="never")
@@ -63,15 +93,24 @@ def init():
     key = secrets.token_urlsafe(32)[:32]
     set_key(env_path, "SECRET_KEY", key, quote_mode="never")
 
-    typer.echo("\nInstalling pre-commit hooks...")
+    _step("Installing pre-commit hooks...")
     subprocess.run(["uv", "run", "pre-commit", "install"], check=True, cwd=ROOT_DIR)
 
-    subprocess.run(["hackplate", "setmode", "safe"], check=True, cwd=ROOT_DIR)
+    _step("Setting Claude Code mode to 'safe'...")
+    write_mode_files("safe")
 
     sentinel.touch()
 
     typer.echo(f"\nInitialized: auth={auth_plate}, db={db_plate}")
-    typer.echo("Secret key generated. Fill in remaining values in .env before running.")
+
+    _step("Checking .env completeness for the selected plates...")
+    if run_checks():
+        typer.echo("All required variables are set — run `hackplate run` when ready.")
+    else:
+        typer.echo(
+            "\nFill in the missing values above in .env, then `hackplate check` "
+            "to confirm before `hackplate run`."
+        )
 
 
 @app.command()
@@ -115,16 +154,10 @@ def assert_settings(Settings: type[BaseSettings]) -> bool:
         return False
 
 
-@app.command()
-def check(
-    error: bool = typer.Option(
-        False,
-        "-e",
-        "--error",
-        help="Exit with code 1 if any .env variables are missing",
-    ),
-):
-    """Validate that .env variables are set properly"""
+def run_checks() -> bool:
+    """Validate .env against the currently selected plates. Returns True if everything
+    required is set. Shared by `hackplate check` and `hackplate init`.
+    """
     from app.hackplate.config import BackendEnvSettings
     from app.hackplate.cors import CORSSettings
     from app.hackplate.plates.db_plates.sqlite.config import SQLiteSettings
@@ -145,19 +178,27 @@ def check(
         "auth0": Auth0Settings,
     }
 
-    all_valid = True
-
-    all_valid &= assert_settings(BackendEnvSettings)
-    if not all_valid:
-        if error:
-            raise typer.Exit(code=1)
-        raise typer.Exit(code=0)
+    if not assert_settings(BackendEnvSettings):
+        return False
 
     backend_settings = BackendEnvSettings()
 
-    all_valid &= assert_settings(CORSSettings)
+    all_valid = assert_settings(CORSSettings)
     all_valid &= assert_settings(settings_map[backend_settings.db])
     all_valid &= assert_settings(settings_map[backend_settings.auth])
+    return all_valid
 
+
+@app.command()
+def check(
+    error: bool = typer.Option(
+        False,
+        "-e",
+        "--error",
+        help="Exit with code 1 if any .env variables are missing",
+    ),
+):
+    """Validate that .env variables are set properly"""
+    all_valid = run_checks()
     if not all_valid and error:
         raise typer.Exit(code=1)
