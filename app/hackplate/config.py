@@ -76,12 +76,12 @@ class BackendConfig:
         config = BackendEnvSettings()
         self.auth_user_model = get_user_model()
 
-        # fmt: off
-        if config.db == "mongo" and not issubclass(self.auth_user_model, AbstractUserDocument):
+        if config.db == "mongo" and not issubclass(
+            self.auth_user_model, AbstractUserDocument
+        ):
             raise ValueError(
                 f"{self.auth_user_model.__name__} must inherit from AbstractUserDocument when using the mongo plate"
             )
-        # fmt: on
 
         if config.db != "mongo" and not issubclass(self.auth_user_model, AbstractUser):
             raise ValueError(

@@ -10,6 +10,8 @@ RUN uv sync --frozen --no-dev --no-cache --no-install-project
 
 COPY app/ ./app/
 
+COPY migrations/ ./migrations/
+
 RUN uv sync --frozen --no-dev --no-cache
 
 ENV PATH="/app/.venv/bin:$PATH"
