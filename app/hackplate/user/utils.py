@@ -28,28 +28,19 @@ def make_fastapi_users(auth_backend, manager_dependency):
     )
 
 
-def make_delete_me_router(fastapi_users: FastAPIUsers) -> APIRouter:
-    """
-    fastapi-users' generated /users router has no DELETE /me — only a
-    superuser-gated DELETE /{id}. This adds self-account deletion using the
-    same current_user()/get_user_manager() dependencies fastapi-users uses
-    internally, so it goes through user_manager.delete() exactly like the
-    superuser route does (firing on_after_delete — e.g. Auth0SyncMixin's
-    Auth0 account cleanup).
-    """
+def make_delete_me_router(
+    fastapi_users: FastAPIUsers,
+    get_current_active_user,
+    cookie_names: list[str] | None = None,
+    secure_cookies: bool = False,
+) -> APIRouter:
     router = APIRouter()
-    get_current_active_user = fastapi_users.current_user(active=True)
 
     @router.delete(
         "/me",
         status_code=status.HTTP_204_NO_CONTENT,
         response_class=Response,
         name="users:delete_current_user",
-        responses={
-            status.HTTP_401_UNAUTHORIZED: {
-                "description": "Missing token or inactive user.",
-            },
-        },
     )
     async def delete_me(
         request: Request,
@@ -57,6 +48,11 @@ def make_delete_me_router(fastapi_users: FastAPIUsers) -> APIRouter:
         user_manager: BaseUserManager = Depends(fastapi_users.get_user_manager),
     ):
         await user_manager.delete(user, request=request)
-        return None
+        response = Response(status_code=status.HTTP_204_NO_CONTENT)
+        for name in cookie_names or []:
+            response.delete_cookie(
+                name, httponly=True, secure=secure_cookies, samesite="lax"
+            )
+        return response
 
     return router

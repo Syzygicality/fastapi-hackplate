@@ -69,7 +69,10 @@ class LocalPlate(AuthPlate):
             tags=["auth"],
         )
         app.include_router(
-            make_delete_me_router(self.fastapi_users),
+            make_delete_me_router(
+                self.fastapi_users,
+                self.fastapi_users.current_user(active=True),
+            ),
             prefix="/users",
             tags=["users"],
         )

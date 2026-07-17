@@ -1,13 +1,13 @@
 import logging
+import asyncio
 import httpx
+import jwt
 
-from auth0.authentication.async_token_verifier import (
-    AsyncAsymmetricSignatureVerifier,
-    AsyncTokenVerifier,
-)
+from jwt import PyJWKClient
 from auth0.management import AsyncManagementClient
-from fastapi import status
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
+from fastapi_users import BaseUserManager
 
 from app.hackplate.plates.abstract_plates import AuthPlate
 from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
@@ -55,13 +55,22 @@ class Auth0Plate(AuthPlate):
         )
         self.read_schema = UserDocumentRead if db_name == "mongo" else UserRead
         self.fastapi_users = make_fastapi_users(auth_backend, self.manager_dependency)
-        sv = AsyncAsymmetricSignatureVerifier(
+        self._jwks_client = PyJWKClient(
             f"https://{self.env_settings.domain}/.well-known/jwks.json"
         )
-        self.token_verifier = AsyncTokenVerifier(
-            signature_verifier=sv,
-            issuer=f"https://{self.env_settings.domain}/",
-            audience=self.env_settings.audience,
+        self._issuer = f"https://{self.env_settings.domain}/"
+        self._audience = self.env_settings.audience
+
+    async def _verify_access_token(self, token: str) -> dict:
+        signing_key = await asyncio.to_thread(
+            self._jwks_client.get_signing_key_from_jwt, token
+        )
+        return jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience=self._audience,
+            issuer=self._issuer,
         )
 
     async def register_auth_routes(self, app: Hackplate) -> None:
@@ -69,34 +78,44 @@ class Auth0Plate(AuthPlate):
             auth0_router_factory(self.env_settings, self.manager_dependency),
             tags=["auth"],
         )
-        app.include_router(
-            make_delete_me_router(self.fastapi_users),
-            prefix="/users",
-            tags=["users"],
-        )
-        app.include_router(
-            self.fastapi_users.get_users_router(self.read_schema, UserUpdate),
-            prefix="/users",
-            tags=["users"],
+        make_delete_me_router(
+            self.fastapi_users,
+            self.get_current_user,
+            cookie_names=["id_token", "access_token"],
+            secure_cookies=self.env_settings.secure_cookies,
         )
 
+        users_router = APIRouter()
+
+        @users_router.get("/me", response_model=self.read_schema)
+        async def get_me(user=Depends(self.get_current_user)):
+            return user
+
+        @users_router.patch("/me", response_model=self.read_schema)
+        async def patch_me(
+            update: UserUpdate,
+            user=Depends(self.get_current_user),
+            user_manager: BaseUserManager = Depends(self.manager_dependency),
+        ):
+            return await user_manager.update(update, user)
+
+        app.include_router(users_router, prefix="/users", tags=["users"])
+
     async def authenticate(self, request: HackplateRequest) -> None:
-        id_token = request.cookies.get("id_token")
-        if not id_token:
+        access_token = request.cookies.get("access_token")
+        if not access_token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         try:
-            await self.token_verifier.verify(id_token)
+            await self._verify_access_token(access_token)
         except Exception:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    async def get_current_user(
-        self, request: HackplateRequest
-    ) -> AbstractUser | AbstractUserDocument:
-        id_token = request.cookies.get("id_token")
-        if not id_token:
+    async def get_current_user(self, request: HackplateRequest):
+        access_token = request.cookies.get("access_token")
+        if not access_token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         try:
-            payload = await self.token_verifier.verify(id_token)
+            payload = await self._verify_access_token(access_token)
         except Exception:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
