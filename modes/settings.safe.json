@@ -26,21 +26,14 @@
         ]
     },
     "hooks": {
-        "PostToolUse": [
-            {
-                "matcher": "Edit|Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "cd \"$CLAUDE_PROJECT_DIR\" && hackplate precommit"
-                    }
-                ]
-            }
-        ],
         "Stop": [
             {
                 "matcher": ".*",
                 "hooks": [
+                    {
+                        "type": "command",
+                        "command": "cd \"$CLAUDE_PROJECT_DIR\" && hackplate precommit"
+                    },
                     {
                         "type": "command",
                         "command": "echo 'Checklist: hackplate run  •  pytest (if pytests exist)  •  hackplate precommit'"

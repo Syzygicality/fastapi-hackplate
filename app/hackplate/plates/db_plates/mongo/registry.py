@@ -1,10 +1,12 @@
-from typing import Type
+from typing import Type, TypeVar
 from beanie import Document
 
 __registered_documents: list[Type[Document]] = []
 
+DocumentT = TypeVar("DocumentT", bound=Document)
 
-def register_document(cls: Type[Document]) -> Type[Document]:
+
+def register_document(cls: Type[DocumentT]) -> Type[DocumentT]:
     """
     Mark a Beanie Document as one to be initialized by MongoPlate.connect().
 
