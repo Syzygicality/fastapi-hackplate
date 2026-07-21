@@ -45,6 +45,9 @@ asyncio_mode = "auto"
 # or AbstractUserDocument (mongo plate). Change this if you define a custom user model.
 auth_user_model = "app.hackplate.user.models.UserDocument"
 
+# Set to true to load Redis settings (REDIS_* env vars) onto the backend config.
+enable_redis = false
+
 [tool.hackplate.db]
 # Set to true to manage schema with Alembic migrations.
 # When false, SQLModel creates tables automatically on startup (not recommended for production).

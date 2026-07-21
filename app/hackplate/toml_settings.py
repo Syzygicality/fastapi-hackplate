@@ -35,6 +35,7 @@ class ProjectDetails(BaseTOMLSettings):
 
 class GeneralSettings(BaseTOMLSettings):
     auth_user_model: str = "app.hackplate.user.models.User"
+    enable_redis: bool = False
 
 
 class DatabaseSettings(BaseTOMLSettings):
