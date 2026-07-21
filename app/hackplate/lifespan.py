@@ -10,6 +10,10 @@ from fastapi.responses import RedirectResponse
 from app.hackplate.config import BackendConfig
 from app.hackplate.cors import register_cors_middleware
 from app.hackplate.exceptions import register_exception_handlers
+from app.hackplate.infra.ratelimit import (
+    register_rate_limiter,
+    log_rate_limit_backend,
+)
 from app.hackplate.logging import setup_logging
 from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 from app.hackplate.toml_settings import BackendTOMLSettings
@@ -24,6 +28,7 @@ async def base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
     app.state.settings = settings
     config = BackendConfig(settings)
     app.state.config = config
+    log_rate_limit_backend()
     yield
 
 
@@ -99,6 +104,7 @@ def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
     """
     register_exception_handlers(app)
     register_cors_middleware(app)
+    register_rate_limiter(app)
     register_root_redirect(app)
     register_health_ping(app)
 

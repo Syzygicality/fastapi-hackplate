@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request, WebSocket
+from slowapi import Limiter
 from starlette.datastructures import State
 from typing import Callable, AsyncContextManager
 
@@ -17,6 +18,7 @@ class _AppState(State):
 
     config: BackendConfig
     settings: BackendTOMLSettings
+    limiter: Limiter
 
 
 class Hackplate(FastAPI):

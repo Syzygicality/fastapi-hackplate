@@ -62,8 +62,21 @@ class CacheSettings(BaseTOMLSettings):
         extra="ignore",
     )
 
-    prefix: str = "hackplate-cache"  # key namespace (matters for shared Redis)
-    expire: int = 60  # default TTL (seconds) applied by the @cache() decorator
+    prefix: str = "hackplate-cache"
+    expire: int = 60
+
+
+class RateLimitSettings(BaseTOMLSettings):
+    """Rate limiting (slowapi) options from [tool.hackplate.ratelimit]."""
+
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("tool", "hackplate", "ratelimit"),
+        extra="ignore",
+    )
+
+    enabled: bool = True
+    default_limits: list[str] = []
+    key_prefix: str = "hackplate-ratelimit"
 
 
 class BackendTOMLSettings:
@@ -72,3 +85,4 @@ class BackendTOMLSettings:
         self.db = DatabaseSettings()
         self.auth = AuthSettings()
         self.cache = CacheSettings()
+        self.ratelimit = RateLimitSettings()

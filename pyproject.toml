@@ -24,6 +24,7 @@ dependencies = [
     "auth0-python>=5.4.0",
     "fastapi-cache2[redis]>=0.2.2",
     "jinja2>=3.1.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.scripts]
@@ -56,10 +57,19 @@ redis_enabled = false
 alembic = false
 
 [tool.hackplate.cache]
-# Response cache (fastapi-cache2) settings.
+# Response caching (fastapi-cache2).
 # prefix: key namespace, mainly relevant when sharing a Redis instance.
 # expire: default TTL in seconds for @cache()-decorated routes that don't set their own.
 prefix = "hackplate-cache"
 expire = 60
+
+[tool.hackplate.ratelimit]
+# Rate limiting (slowapi).
+# enabled: toggle enforcement without removing @limiter.limit decorators.
+# default_limits: global cap applied to every route, e.g. ["100/minute"] (empty = none).
+# key_prefix: key namespace, mainly relevant when sharing a Redis instance.
+enabled = true
+default_limits = []
+key_prefix = "hackplate-ratelimit"
 
 [tool.hackplate.auth]
