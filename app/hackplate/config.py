@@ -7,6 +7,7 @@ from app.hackplate.plates.db_plates.postgres.config import PostgresPlate
 from app.hackplate.plates.db_plates.postgres.supabase_config import SupabasePlate
 from app.hackplate.plates.db_plates.mongo.config import MongoPlate
 from app.hackplate.infra.redis import RedisSettings
+from app.hackplate.infra.caching import init_cache
 from app.hackplate.plates.abstract_plates import DatabasePlate, AuthPlate
 from app.hackplate.plates.auth_plates.local.config import LocalPlate
 from app.hackplate.plates.auth_plates.keycloak.config import KeycloakPlate
@@ -96,5 +97,8 @@ class BackendConfig:
         self.auth: AuthPlate = auth_plates[config.auth](settings.auth, self.db_name)
 
         self.redis: RedisSettings | None = (
-            RedisSettings() if settings.project.enable_redis else None
+            RedisSettings() if settings.project.redis_enabled else None
         )
+
+        self.cache = settings.cache
+        init_cache(self.cache, self.redis)

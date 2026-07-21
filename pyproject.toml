@@ -22,6 +22,8 @@ dependencies = [
     "alembic>=1.14.0",
     "python-keycloak>=7.1.1",
     "auth0-python>=5.4.0",
+    "fastapi-cache2[redis]>=0.2.2",
+    "jinja2>=3.1.0",
 ]
 
 [project.scripts]
@@ -43,14 +45,21 @@ asyncio_mode = "auto"
 [tool.hackplate]
 # The user model used by the auth plate. Must inherit from AbstractUser (SQL plates)
 # or AbstractUserDocument (mongo plate). Change this if you define a custom user model.
-auth_user_model = "app.hackplate.user.models.UserDocument"
+auth_user_model = "app.hackplate.user.models.User"
 
 # Set to true to load Redis settings (REDIS_* env vars) onto the backend config.
-enable_redis = false
+redis_enabled = false
 
 [tool.hackplate.db]
 # Set to true to manage schema with Alembic migrations.
 # When false, SQLModel creates tables automatically on startup (not recommended for production).
 alembic = false
+
+[tool.hackplate.cache]
+# Response cache (fastapi-cache2) settings.
+# prefix: key namespace, mainly relevant when sharing a Redis instance.
+# expire: default TTL in seconds for @cache()-decorated routes that don't set their own.
+prefix = "hackplate-cache"
+expire = 60
 
 [tool.hackplate.auth]

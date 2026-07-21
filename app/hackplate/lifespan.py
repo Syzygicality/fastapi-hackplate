@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
+    setup_logging()
     settings = BackendTOMLSettings()
     app.state.settings = settings
     config = BackendConfig(settings)
@@ -28,7 +29,6 @@ async def base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
 
 @asynccontextmanager
 async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
-    setup_logging()
     await app.state.config.db.connect()
     logger.info("Successful database connection!")
     if not await app.state.config.db.ping():

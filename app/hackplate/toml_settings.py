@@ -35,7 +35,7 @@ class ProjectDetails(BaseTOMLSettings):
 
 class GeneralSettings(BaseTOMLSettings):
     auth_user_model: str = "app.hackplate.user.models.User"
-    enable_redis: bool = False
+    redis_enabled: bool = False
 
 
 class DatabaseSettings(BaseTOMLSettings):
@@ -54,8 +54,21 @@ class AuthSettings(BaseTOMLSettings):
     )
 
 
+class CacheSettings(BaseTOMLSettings):
+    """Response-cache (fastapi-cache2) options from [tool.hackplate.cache]."""
+
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("tool", "hackplate", "cache"),
+        extra="ignore",
+    )
+
+    prefix: str = "hackplate-cache"  # key namespace (matters for shared Redis)
+    expire: int = 60  # default TTL (seconds) applied by the @cache() decorator
+
+
 class BackendTOMLSettings:
     def __init__(self):
         self.project = GeneralSettings()
         self.db = DatabaseSettings()
         self.auth = AuthSettings()
+        self.cache = CacheSettings()
