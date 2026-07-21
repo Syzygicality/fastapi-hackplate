@@ -21,19 +21,18 @@ def init_cache(
         cache_settings: prefix / default TTL for cached responses.
         redis_settings: when provided, cached responses are stored in Redis.
     """
+    logger.info("Cache prefix: %s", cache_settings.prefix)
     if redis_settings is not None:
         from redis import asyncio as aioredis
         from fastapi_cache.backends.redis import RedisBackend
 
         client = aioredis.from_url(redis_settings.connection_url)
         backend = RedisBackend(client)
-        logger.info("Using Redis cache backend... (prefix: %s)", cache_settings.prefix)
+
+        logger.info("Using Redis cache backend...")
     else:
         backend = InMemoryBackend()
-        logger.info(
-            "Redis disabled, using in-memory cache backend... (prefix: %s)",
-            cache_settings.prefix,
-        )
+        logger.info("Redis disabled, using in-memory cache backend...")
 
     FastAPICache.init(
         backend,

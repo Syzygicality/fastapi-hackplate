@@ -54,11 +54,8 @@ def register_rate_limiter(app: Hackplate) -> None:
 def log_rate_limit_backend() -> None:
     """Logs the active rate-limit backend. Called at startup, after logging setup."""
     if not limiter.enabled:
-        logger.info("Rate limiting disabled (ratelimit.enabled = false).")
+        logger.info("Rate limiting disabled, enable in pyproject.toml.")
     elif _uses_redis:
         logger.info("Using Redis rate-limit backend...")
     else:
-        logger.info(
-            "Redis disabled, using in-memory rate-limit backend... "
-            "(per-process, not shared across workers)"
-        )
+        logger.info("Redis disabled, using in-memory rate-limit backend... ")
