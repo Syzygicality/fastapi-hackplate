@@ -123,13 +123,16 @@ class Auth0Plate(AuthPlate):
         except Exception:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
+        user: AbstractUser | AbstractUserDocument | None
         if self.db_name == "mongo":
-            user_db = BeanieUserDatabaseAsync(get_user_model())
-            user: AbstractUserDocument = await user_db.get_by_sub(payload["sub"])
+            beanie_db = BeanieUserDatabaseAsync(get_user_model())
+            user = await beanie_db.get_by_sub(payload["sub"])
         else:
             async with request.app.state.config.db.get_db() as session:
-                user_db = SQLModelUserDatabaseAsync(session, get_user_model())
-                user: AbstractUser = await user_db.get_by_sub(payload["sub"])
+                sql_db: SQLModelUserDatabaseAsync = SQLModelUserDatabaseAsync(
+                    session, get_user_model()
+                )
+                user = await sql_db.get_by_sub(payload["sub"])
 
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

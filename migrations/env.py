@@ -2,7 +2,9 @@ import asyncio
 import os
 from logging.config import fileConfig
 from pathlib import Path
+from typing import Any, Literal
 
+from alembic.autogenerate.api import AutogenContext
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
@@ -27,32 +29,30 @@ def get_url() -> str:
             SupabaseSettings,
         )
 
-        s = SupabaseSettings()
-        if s.url:
-            return s.url
-        base = (
-            f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
-        )
-        return f"{base}?ssl=require" if s.ssl_required else base
+        sb = SupabaseSettings()
+        if sb.url:
+            return sb.url
+        base = f"postgresql+asyncpg://{sb.username}:{sb.password}@{sb.host}:{sb.port}/{sb.name}"
+        return f"{base}?ssl=require" if sb.ssl_required else base
     if db == "postgres":
         from app.hackplate.plates.db_plates.postgres.config import PostgresSettings
 
-        s = PostgresSettings()
-        if s.url:
-            return s.url
-        base = (
-            f"postgresql+asyncpg://{s.username}:{s.password}@{s.host}:{s.port}/{s.name}"
-        )
-        return f"{base}?ssl=require" if s.ssl_required else base
+        pg = PostgresSettings()
+        if pg.url:
+            return pg.url
+        base = f"postgresql+asyncpg://{pg.username}:{pg.password}@{pg.host}:{pg.port}/{pg.name}"
+        return f"{base}?ssl=require" if pg.ssl_required else base
     else:
         from app.hackplate.plates.db_plates.sqlite.config import SQLiteSettings
 
-        s = SQLiteSettings()
-        resolved = str(Path(s.db_path).resolve())
+        lite = SQLiteSettings()
+        resolved = str(Path(lite.db_path).resolve())
         return f"sqlite+aiosqlite:///{resolved}"
 
 
-def render_item(type_: str, obj: object, autogen_context: object) -> str | bool:
+def render_item(
+    type_: str, obj: Any, autogen_context: AutogenContext
+) -> str | Literal[False]:
     """Render SQLModel's AutoString as plain sa.String() in migration files."""
     if type_ == "type" and isinstance(obj, AutoString):
         autogen_context.imports.add("import sqlalchemy as sa")

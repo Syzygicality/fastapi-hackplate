@@ -17,7 +17,7 @@ from app.hackplate.user.models import AbstractUser, AbstractUserDocument
 
 logger = logging.getLogger(__name__)
 
-auth_backend = AuthenticationBackend(
+auth_backend: AuthenticationBackend = AuthenticationBackend(
     name="auth0",
     transport=BearerTransport(tokenUrl=""),
     get_strategy=lambda: JWTStrategy(secret="unused", lifetime_seconds=0),

@@ -2,6 +2,7 @@ import logging
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.types import Backend
 
 from app.hackplate.infra.redis import RedisSettings
 from app.hackplate.toml_settings import CacheSettings
@@ -27,7 +28,7 @@ def init_cache(
         from fastapi_cache.backends.redis import RedisBackend
 
         client = aioredis.from_url(redis_settings.connection_url)
-        backend = RedisBackend(client)
+        backend: Backend = RedisBackend(client)
 
         logger.info("Using Redis cache backend...")
     else:

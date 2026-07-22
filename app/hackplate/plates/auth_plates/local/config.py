@@ -101,15 +101,18 @@ class LocalPlate(AuthPlate):
         token = auth_header[7:]
         strategy = get_jwt_strategy()
 
+        user: AbstractUser | AbstractUserDocument | None
         if self.db_name == "mongo":
-            user_db = BeanieUserDatabaseAsync(get_user_model())
-            user_manager = UserDocumentManager(user_db)
-            user: AbstractUserDocument = await strategy.read_token(token, user_manager)
+            beanie_db = BeanieUserDatabaseAsync(get_user_model())
+            beanie_manager = UserDocumentManager(beanie_db)
+            user = await strategy.read_token(token, beanie_manager)
         else:
             async with request.app.state.config.db.get_db() as session:
-                user_db = SQLModelUserDatabaseAsync(session, get_user_model())
-                user_manager = UserManager(user_db)
-                user: AbstractUser = await strategy.read_token(token, user_manager)
+                sql_db: SQLModelUserDatabaseAsync = SQLModelUserDatabaseAsync(
+                    session, get_user_model()
+                )
+                sql_manager = UserManager(sql_db)
+                user = await strategy.read_token(token, sql_manager)
 
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

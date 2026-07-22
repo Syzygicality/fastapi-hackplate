@@ -1,7 +1,11 @@
 import logging
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    create_async_engine,
+    async_sessionmaker,
+)
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -26,7 +30,7 @@ class SQLitePlate(DatabasePlate):
     def __init__(self, toml_settings: DatabaseSettings):
         self.env_settings = SQLiteSettings()
         self.toml_settings = toml_settings
-        self.engine = None
+        self.engine: AsyncEngine | None = None
         self._session_factory: async_sessionmaker[AsyncSession] | None = None
 
     async def connect(self) -> None:
@@ -62,4 +66,5 @@ class SQLitePlate(DatabasePlate):
             return False
 
     def get_db(self) -> AsyncSession:
+        assert self._session_factory is not None, "Database not connected."
         return self._session_factory()

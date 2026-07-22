@@ -63,7 +63,7 @@ class KeycloakPlate(AuthPlate):
             tags=["auth"],
         )
         app.include_router(
-            make_delete_me_router(self.fastapi_users),
+            make_delete_me_router(self.fastapi_users, self.get_current_user),
             prefix="/users",
             tags=["users"],
         )
@@ -94,12 +94,14 @@ class KeycloakPlate(AuthPlate):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
         if self.db_name == "mongo":
-            user_db = BeanieUserDatabaseAsync(get_user_model())
-            user = await user_db.get_by_sub(user_info["sub"])
+            beanie_db = BeanieUserDatabaseAsync(get_user_model())
+            user = await beanie_db.get_by_sub(user_info["sub"])
         else:
             async with request.app.state.config.db.get_db() as session:
-                user_db = SQLModelUserDatabaseAsync(session, get_user_model())
-                user = await user_db.get_by_sub(user_info["sub"])
+                sql_db: SQLModelUserDatabaseAsync = SQLModelUserDatabaseAsync(
+                    session, get_user_model()
+                )
+                user = await sql_db.get_by_sub(user_info["sub"])
 
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

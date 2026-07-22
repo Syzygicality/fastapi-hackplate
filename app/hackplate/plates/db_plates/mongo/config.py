@@ -97,4 +97,5 @@ class MongoPlate(DatabasePlate):
             return False
 
     async def get_db(self) -> AsyncDatabase:
+        assert self.db is not None, "Database not connected."
         return self.db

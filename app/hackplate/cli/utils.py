@@ -168,7 +168,7 @@ def run_checks() -> bool:
     from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
     from app.hackplate.plates.auth_plates.auth0.env_settings import Auth0Settings
 
-    settings_map = {
+    settings_map: dict[str, type[BaseSettings]] = {
         "sqlite": SQLiteSettings,
         "postgres": PostgresSettings,
         "supabase": SupabaseSettings,

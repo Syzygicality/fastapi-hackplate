@@ -94,7 +94,7 @@ def register_health_ping(app: Hackplate) -> None:
         return {"message": "PONG"}
 
 
-def configure(app: Hackplate, register_functions: Callable[[Hackplate], None]):
+def configure(app: Hackplate, register_functions: list[Callable[[Hackplate], None]]):
     """
     Centralizes app configuration logic
 

@@ -16,7 +16,7 @@ from app.hackplate.user.dependencies import get_sqlmodel_user_db, get_beanie_use
 
 logger = logging.getLogger(__name__)
 
-auth_backend = AuthenticationBackend(
+auth_backend: AuthenticationBackend = AuthenticationBackend(
     name="keycloak",
     transport=BearerTransport(tokenUrl=""),
     get_strategy=lambda: JWTStrategy(secret="unused", lifetime_seconds=0),
