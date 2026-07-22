@@ -31,7 +31,7 @@ Run all three in order and resolve any errors:
 ```bash
 hackplate run                  # verify server starts clean, then Ctrl+C
 # if using the keycloak plate:
-hackplate run --docker-compose # starts Keycloak via docker compose, waits, then tails logs
+hackplate up                   # starts Keycloak via docker compose, waits, then tails logs
 uv run pytest                  # run test suite (skip if no tests exist yet)
 hackplate precommit            # lint and format
 ```

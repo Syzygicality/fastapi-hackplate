@@ -117,7 +117,7 @@ Never put deployment-varying values in `pyproject.toml` or structural decisions 
 | Command | Description |
 |---|---|
 | `hackplate run` | Start uvicorn (`-m dev`\|`prod`, default `dev`; `prod` runs `HACKPLATE_WORKERS` workers, no reload) |
-| `hackplate run --docker-compose` | Start full stack via Docker Compose (`-m dev`\|`prod` selects the compose profile) |
+| `hackplate up` | Start full stack via Docker Compose (`-m dev`\|`prod` selects the compose profile) |
 | `hackplate init` | First-time repo setup (runs once) |
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |

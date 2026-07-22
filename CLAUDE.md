@@ -30,7 +30,7 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | Command | Description |
 |---|---|
 | `hackplate run` | Start uvicorn (`-m dev`\|`prod`, default `dev`; `dev` hot-reloads, `prod` runs `HACKPLATE_WORKERS` workers) |
-| `hackplate run --docker-compose` | Start full stack via docker compose (`-m dev`\|`prod` selects the compose profile) |
+| `hackplate up` | Start full stack via docker compose (`-m dev`\|`prod` selects the compose profile) |
 | `hackplate init` | First-time repo setup (runs once) |
 | `hackplate precommit` | Install and run pre-commit on all files |
 | `hackplate clean` | Remove `.ruff_cache`, `.pytest_cache`, `__pycache__`, `*.egg-info` |
@@ -149,4 +149,4 @@ Key `.env` variables by plate:
 | `keycloak` | `KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ADMIN_USERNAME/PASSWORD` |
 | `local` | `SECRET_KEY` (auto-set by `hackplate init` or `hackplate regenkey`) |
 
-`HACKPLATE_WORKERS` sets the number of uvicorn worker processes used by `hackplate run -m prod` (default `4`). In `--docker-compose` mode it's read from the container's env (via `env_file: .env`) directly by the Dockerfile's `CMD`, which passes it to uvicorn as `--workers`.
+`HACKPLATE_WORKERS` sets the number of uvicorn worker processes used by `hackplate run -m prod` (default `4`). In `hackplate up` mode it's read from the container's env (via `env_file: .env`) directly by the Dockerfile's `CMD`, which passes it to uvicorn as `--workers`.

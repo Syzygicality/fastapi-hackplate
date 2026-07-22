@@ -64,7 +64,7 @@ def _warn_if_docker_missing(auth_plate: str) -> None:
     if auth_plate == "keycloak" and not shutil.which("docker"):
         typer.echo(
             "\nwarning: the keycloak plate needs Docker for local dev "
-            "(`hackplate run --docker-compose`), but `docker` isn't on PATH.",
+            "(`hackplate up`), but `docker` isn't on PATH.",
             err=True,
         )
 
