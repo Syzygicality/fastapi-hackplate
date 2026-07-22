@@ -20,8 +20,8 @@ class RedisSettings(BaseSettings):
     host: str = "localhost"
     port: int = 6379
     db: int = 0
-    username: str | None = None
-    password: str | None = None
+    username: str
+    password: str
     ssl_required: bool = False
 
     @property
