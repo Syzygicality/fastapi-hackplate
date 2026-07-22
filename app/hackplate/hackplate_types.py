@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request, WebSocket
 from slowapi import Limiter
 from starlette.datastructures import State
@@ -19,6 +20,7 @@ class _AppState(State):
     config: BackendConfig
     settings: BackendTOMLSettings
     limiter: Limiter
+    scheduler: AsyncIOScheduler
 
 
 class Hackplate(FastAPI):

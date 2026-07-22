@@ -29,7 +29,7 @@ def _build_limiter() -> tuple[Limiter, bool]:
         default_limits=rl.default_limits,
         storage_uri=storage_uri,
         key_prefix=rl.key_prefix,
-        enabled=rl.enabled,
+        enabled=rl.ratelimiting_enabled,
         swallow_errors=True,  # a limit-store outage must not turn requests into 500s
     )
     return limiter, redis is not None

@@ -25,6 +25,7 @@ dependencies = [
     "fastapi-cache2[redis]>=0.2.2",
     "jinja2>=3.1.0",
     "slowapi>=0.1.9",
+    "apscheduler>=3.10,<4.0",
 ]
 
 [project.scripts]
@@ -65,11 +66,19 @@ expire = 60
 
 [tool.hackplate.ratelimit]
 # Rate limiting (slowapi).
-# enabled: toggle enforcement without removing @limiter.limit decorators.
+# ratelimiting_enabled: toggle enforcement without removing @limiter.limit decorators.
 # default_limits: global cap applied to every route, e.g. ["100/minute"] (empty = none).
 # key_prefix: key namespace, mainly relevant when sharing a Redis instance.
-enabled = true
+ratelimiting_enabled = true
 default_limits = []
 key_prefix = "hackplate-ratelimit"
+
+[tool.hackplate.scheduler]
+# Task scheduling (APScheduler).
+# task_scheduling_enabled: start the scheduler on startup; when false, registered jobs never fire.
+# timezone: timezone used to interpret cron/interval triggers.
+# Register jobs with @scheduler.scheduled_job(...) or scheduler.add_job(...).
+task_scheduling_enabled = true
+timezone = "UTC"
 
 [tool.hackplate.auth]

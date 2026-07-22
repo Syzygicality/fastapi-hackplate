@@ -74,9 +74,21 @@ class RateLimitSettings(BaseTOMLSettings):
         extra="ignore",
     )
 
-    enabled: bool = True
+    ratelimiting_enabled: bool = True
     default_limits: list[str] = []
     key_prefix: str = "hackplate-ratelimit"
+
+
+class SchedulerSettings(BaseTOMLSettings):
+    """Task scheduling (APScheduler) options from [tool.hackplate.scheduler]."""
+
+    model_config = SettingsConfigDict(
+        pyproject_toml_table_header=("tool", "hackplate", "scheduler"),
+        extra="ignore",
+    )
+
+    task_scheduling_enabled: bool = True
+    timezone: str = "UTC"
 
 
 class BackendTOMLSettings:
@@ -86,3 +98,4 @@ class BackendTOMLSettings:
         self.auth = AuthSettings()
         self.cache = CacheSettings()
         self.ratelimit = RateLimitSettings()
+        self.scheduler = SchedulerSettings()

@@ -14,6 +14,11 @@ from app.hackplate.infra.ratelimit import (
     register_rate_limiter,
     log_rate_limit_backend,
 )
+from app.hackplate.infra.task_scheduling import (
+    scheduler,
+    start_scheduler,
+    shutdown_scheduler,
+)
 from app.hackplate.logging import setup_logging
 from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 from app.hackplate.toml_settings import BackendTOMLSettings
@@ -47,7 +52,10 @@ async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
         raise RuntimeError("Auth ping failed.")
     logger.info("Auth: PONG")
     await app.state.config.auth.register_auth_routes(app)
+    app.state.scheduler = scheduler
+    start_scheduler()
     yield
+    shutdown_scheduler()
     await app.state.config.db.disconnect()
 
 
