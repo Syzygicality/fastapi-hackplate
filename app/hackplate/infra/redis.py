@@ -1,4 +1,8 @@
+import logging
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class RedisSettings(BaseSettings):
@@ -37,3 +41,16 @@ class RedisSettings(BaseSettings):
         else:
             auth = ""
         return f"{scheme}://{auth}{self.host}:{self.port}/{self.db}"
+
+    async def ping(self) -> bool:
+        """Ensure the Redis server is reachable. Returns True on PONG, False otherwise."""
+        import redis.asyncio as redis
+
+        client = redis.from_url(self.connection_url)
+        try:
+            return bool(await client.ping())
+        except Exception:
+            logger.warning("Redis ping failed.")
+            return False
+        finally:
+            await client.close()

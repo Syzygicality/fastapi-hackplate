@@ -51,6 +51,12 @@ async def config_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
         await app.state.config.db.disconnect()
         raise RuntimeError("Auth ping failed.")
     logger.info("Auth: PONG")
+    if app.state.config.redis is not None:
+        if not await app.state.config.redis.ping():
+            logger.exception("Redis ping failed.")
+            await app.state.config.db.disconnect()
+            raise RuntimeError("Redis ping failed.")
+        logger.info("Redis: PONG")
     await app.state.config.auth.register_auth_routes(app)
     app.state.scheduler = scheduler
     start_scheduler()
@@ -80,24 +86,20 @@ def register_root_redirect(app: Hackplate) -> None:
 def register_health_ping(app: Hackplate) -> None:
     @app.get("/ping")
     async def ping(request: HackplateRequest) -> dict[str, str]:
-        db_response, auth_response = await asyncio.gather(
-            request.app.state.config.db.ping(),
-            request.app.state.config.auth.ping(),
-        )
-        if not db_response and not auth_response:
+        config = request.app.state.config
+        checks: dict[str, "asyncio.Future[bool]"] = {
+            "Database": config.db.ping(),
+            "Auth": config.auth.ping(),
+        }
+        if config.redis is not None:
+            checks["Redis"] = config.redis.ping()
+
+        results = await asyncio.gather(*checks.values())
+        failed = [name for name, ok in zip(checks, results) if not ok]
+        if failed:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Database and Auth Ping Failed.",
-            )
-        if not db_response:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Database Ping Failed.",
-            )
-        if not auth_response:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Auth Ping Failed.",
+                detail=f"{' and '.join(failed)} Ping Failed.",
             )
         return {"message": "PONG"}
 
