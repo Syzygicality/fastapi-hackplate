@@ -13,8 +13,7 @@ class KeycloakSettings(BaseSettings):
     admin_password: str = "admin"
     use_local: bool = True
     realm: str = "hackplate"
-    host: str = "http://keycloak:8080"
-    external_url: str = "http://localhost:8080"
+    url: str = "http://keycloak:8080"
     client_id: str = "hackplate"
     client_secret: str = "client_secret_placeholder"
     callback_url: str = "http://localhost:8000/auth/callback"

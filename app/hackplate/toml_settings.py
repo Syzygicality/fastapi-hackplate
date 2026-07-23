@@ -87,7 +87,7 @@ class SchedulerSettings(BaseTOMLSettings):
         extra="ignore",
     )
 
-    task_scheduling_enabled: bool = True
+    task_scheduling_enabled: bool = False
     timezone: str = "UTC"
 
 

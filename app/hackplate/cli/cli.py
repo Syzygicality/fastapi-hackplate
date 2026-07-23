@@ -9,7 +9,7 @@ app.add_typer(feature.app)
 app.add_typer(plate.app)
 app.add_typer(mode.app)
 app.add_typer(start.app)
-app.add_typer(keycloak.app)
+app.add_typer(keycloak.app, name="keycloak")
 
 
 if __name__ == "__main__":

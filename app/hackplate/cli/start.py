@@ -5,7 +5,7 @@ from typing import Literal
 import typer
 from dotenv import get_key, load_dotenv
 
-from app.hackplate.cli.keycloak import compose_files, wait_for_keycloak
+from app.hackplate.cli.keycloak import ensure_keycloak
 from app.hackplate.cli.utils import ROOT_DIR, check
 
 app = typer.Typer()
@@ -22,6 +22,9 @@ def run(
     check(error=True)
 
     extra = args or []
+
+    load_dotenv(verbose=True)
+    ensure_keycloak(mode)
 
     uvicorn_cmd = ["uv", "run", "uvicorn", "app.main:app"]
     if mode == "dev":
@@ -45,26 +48,11 @@ def up(
     extra = args or []
 
     load_dotenv(verbose=True)
-    auth_plate = get_key(Path(ROOT_DIR) / ".env", "HACKPLATE_AUTH")
-    is_local = get_key(Path(ROOT_DIR) / ".env", "KEYCLOAK_USE_LOCAL")
-    use_keycloak = bool(auth_plate == "keycloak" and is_local)
+    ensure_keycloak(mode)
 
-    command_prefix = [
-        "docker",
-        "compose",
-        *compose_files(use_keycloak),
-        "--profile",
-        mode,
-    ]
+    command_prefix = ["docker", "compose", "--profile", mode]
 
     subprocess.run([*command_prefix, "up", "-d", *extra], check=True)
-
-    if use_keycloak:
-        wait_for_keycloak()
-        subprocess.run(["hackplate", "kcsync", "--mode", mode], check=True)
-        api_service = "api" if mode == "dev" else "api-prod"
-        subprocess.run([*command_prefix, "up", "-d", api_service], check=True)
-
     subprocess.run([*command_prefix, "logs", "-f"], check=True)
 
 
@@ -73,14 +61,7 @@ def down(args: list[str] = typer.Argument(default=None)):
     """Stop active docker containers."""
     extra = args or []
     subprocess.run(
-        [
-            "docker",
-            "compose",
-            *compose_files(use_keycloak=True),
-            "--profile",
-            "*",
-            "down",
-            *extra,
-        ],
+        ["docker", "compose", "--profile", "*", "down", *extra],
         check=True,
     )
+    typer.echo("Keycloak runs separately — stop it with `hackplate keycloak down`.")

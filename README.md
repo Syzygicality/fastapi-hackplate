@@ -50,6 +50,19 @@ SQLite, Postgres, and Supabase use SQLModel/SQLAlchemy for schema management. Mo
 
 Auth plates automatically register login/logout/token routes and provide a `get_current_user` dependency available through `app/dependencies.py`.
 
+#### Keycloak
+
+Keycloak runs as its own Docker Compose project, separate from the app stack:
+
+```bash
+sudo sh -c 'echo "127.0.0.1 keycloak" >> /etc/hosts'   # one time
+hackplate keycloak up                                  # starts Keycloak, waits until healthy
+```
+
+`KEYCLOAK_URL` (default `http://keycloak:8080`) is the single URL used by the browser, the app and the CLI, which is why the name needs to resolve on the host as well — inside the api container it is provided automatically.
+
+`hackplate run` and `hackplate up` start Keycloak if it isn't already running and sync its realm config before the app boots, so `hackplate keycloak up` is only needed on its own. Stop it with `hackplate keycloak down`.
+
 ## Project structure
 
 ```
@@ -129,7 +142,9 @@ Never put deployment-varying values in `pyproject.toml` or structural decisions 
 | `hackplate regenkey` | Regenerate `SECRET_KEY` in `.env` |
 | `hackplate precommit` | Install and run pre-commit on all files |
 | `hackplate clean` | Remove cache and build artifacts |
-| `hackplate kcsync` | Sync Keycloak realm config to `settings.json` |
+| `hackplate keycloak up` | Start the standalone Keycloak stack and wait until healthy |
+| `hackplate keycloak down` | Stop the standalone Keycloak stack |
+| `hackplate keycloak sync` | Sync Keycloak realm config to `settings.json` |
 | `hackplate down` | Stop Docker containers |
 
 Run `hackplate --help` for the full reference.

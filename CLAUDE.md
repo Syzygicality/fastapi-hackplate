@@ -42,7 +42,9 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `hackplate getmode` | Show the current Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a new feature directory under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
-| `hackplate kcsync` | Sync Keycloak realm config to `settings.json` |
+| `hackplate keycloak up` | Start the standalone Keycloak stack (`-m dev`\|`prod`) and wait until it is healthy |
+| `hackplate keycloak down` | Stop the standalone Keycloak stack |
+| `hackplate keycloak sync` | Sync Keycloak realm config to `settings.json` |
 | `hackplate down` | Stop docker containers |
 | `uv run alembic revision --autogenerate -m "<msg>"` | Generate a migration |
 | `uv run alembic upgrade head` | Apply migrations |
@@ -89,6 +91,20 @@ HACKPLATE_DB=sqlite    # sqlite | postgres | supabase | mongo
 Switch plates with `hackplate setplate auth <name>` or `hackplate setplate db <name>`.
 
 **Auth plates** register login/logout/token routes automatically and provide a `get_current_user` dependency. Access it via `app/dependencies.py`.
+
+### Keycloak
+
+Keycloak is **not** part of `docker-compose.yml` — it runs as its own compose project (`app/hackplate/plates/auth_plates/keycloak/docker-compose.keycloak.yml`, project name `hackplate-keycloak`), started with `hackplate keycloak up`.
+
+`KEYCLOAK_URL` is the single URL used by the browser, the app and the CLI alike, so it has to resolve identically from the host and from inside the api container. One-time host setup for the local stack:
+
+```
+sudo sh -c 'echo "127.0.0.1 keycloak" >> /etc/hosts'
+```
+
+Inside the api container the name is supplied by `extra_hosts: keycloak:host-gateway` in `docker-compose.yml`, which routes to the port Keycloak publishes on the host.
+
+`hackplate run` and `hackplate up` both call `ensure_keycloak()` first: when `HACKPLATE_AUTH=keycloak` and `KEYCLOAK_USE_LOCAL=true`, they start the Keycloak stack, block until it is healthy, and run `hackplate keycloak sync` before the app starts. `hackplate down` stops only the app stack; use `hackplate keycloak down` for Keycloak.
 
 **DB plates** provide a `get_db` session dependency. SQLite, Postgres, and Supabase use SQLModel/SQLAlchemy (sync schema); Mongo uses Beanie (document schema). Switching between SQL and Mongo requires changing the user model base class (see User Model below). `supabase` is the same as `postgres` but defaults `ssl_required=True` and appends `?ssl=require` to the connection URL.
 
@@ -146,7 +162,7 @@ Key `.env` variables by plate:
 | `supabase` | same as `postgres` — `POSTGRES_URL` or `POSTGRES_HOST/PORT/NAME/USERNAME/PASSWORD` (`POSTGRES_SSL_REQUIRED` defaults to `true`) |
 | `mongo` | `MONGO_URL` or `MONGO_HOST/PORT/NAME/USERNAME/PASSWORD` |
 | `auth0` | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_AUDIENCE` |
-| `keycloak` | `KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ADMIN_USERNAME/PASSWORD` |
+| `keycloak` | `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ADMIN_USERNAME/PASSWORD` |
 | `local` | `SECRET_KEY` (auto-set by `hackplate init` or `hackplate regenkey`) |
 
 `HACKPLATE_WORKERS` sets the number of uvicorn worker processes used by `hackplate run -m prod` (default `4`). In `hackplate up` mode it's read from the container's env (via `env_file: .env`) directly by the Dockerfile's `CMD`, which passes it to uvicorn as `--workers`.

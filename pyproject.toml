@@ -78,7 +78,7 @@ key_prefix = "hackplate-ratelimit"
 # task_scheduling_enabled: start the scheduler on startup; when false, registered jobs never fire.
 # timezone: timezone used to interpret cron/interval triggers.
 # Register jobs with @scheduler.scheduled_job(...) or scheduler.add_job(...).
-task_scheduling_enabled = true
+task_scheduling_enabled = false
 timezone = "UTC"
 
 [tool.hackplate.auth]

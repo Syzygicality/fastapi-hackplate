@@ -18,7 +18,7 @@ def keycloak_router_factory(
     settings: KeycloakSettings, manager_dependency: Callable
 ) -> APIRouter:
     keycloak_openid = KeycloakOpenID(
-        server_url=settings.host,
+        server_url=settings.url,
         realm_name=settings.realm,
         client_id=settings.client_id,
         client_secret_key=settings.client_secret,
@@ -35,7 +35,7 @@ def keycloak_router_factory(
                 "redirect_uri": settings.callback_url,
             }
         )
-        url = f"{settings.external_url}/realms/{settings.realm}/protocol/openid-connect/auth?{params}"
+        url = f"{settings.url}/realms/{settings.realm}/protocol/openid-connect/auth?{params}"
         return RedirectResponse(url)
 
     @keycloak_router.get("/auth/callback")
@@ -121,7 +121,7 @@ def keycloak_router_factory(
                 "id_token_hint": id_token,
             }
         )
-        url = f"{settings.external_url}/realms/{settings.realm}/protocol/openid-connect/logout?{params}"
+        url = f"{settings.url}/realms/{settings.realm}/protocol/openid-connect/logout?{params}"
         response = RedirectResponse(url)
         response.delete_cookie("id_token")
         response.delete_cookie("access_token")

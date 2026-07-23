@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 import httpx
 import typer
-from dotenv import set_key
+from dotenv import get_key, set_key
 
 from app.hackplate.cli.utils import ROOT_DIR
 
@@ -15,22 +15,49 @@ SENSITIVE_KEYS = {"secret", "registrationAccessToken"}
 KEYCLOAK_COMPOSE_FILE = (
     "app/hackplate/plates/auth_plates/keycloak/docker-compose.keycloak.yml"
 )
+KEYCLOAK_PROJECT = "hackplate-keycloak"
 
-app = typer.Typer()
-
-
-def compose_files(use_keycloak: bool) -> list[str]:
-    files = ["-f", "docker-compose.yml"]
-    if use_keycloak:
-        files += ["-f", KEYCLOAK_COMPOSE_FILE]
-    return files
+app = typer.Typer(help="Manage the local Keycloak stack.")
 
 
-def allow_keycloak_http(host: str, username: str, password: str, service: str):
-    kcadm = [
+def keycloak_compose(mode: Literal["dev", "prod"] | None = None) -> list[str]:
+    """Base `docker compose` command for the standalone Keycloak project.
+
+    Keycloak lives in its own compose project, so the project name and directory
+    are pinned explicitly: the project dir keeps relative paths (`.env`, the realm
+    settings mount) resolving from the repo root, and the project name keeps this
+    stack from colliding with the app stack in `docker-compose.yml`.
+    """
+    command = [
         "docker",
         "compose",
-        *compose_files(use_keycloak=True),
+        "-f",
+        KEYCLOAK_COMPOSE_FILE,
+        "--project-directory",
+        ROOT_DIR,
+        "-p",
+        KEYCLOAK_PROJECT,
+    ]
+    if mode:
+        command += ["--profile", mode]
+    return command
+
+
+def keycloak_service(mode: Literal["dev", "prod"]) -> str:
+    return "keycloak" if mode == "dev" else "keycloak-prod"
+
+
+def uses_local_keycloak() -> bool:
+    """True when the active auth plate is Keycloak and it is the local stack."""
+    env_path = Path(ROOT_DIR) / ".env"
+    auth_plate = get_key(env_path, "HACKPLATE_AUTH")
+    use_local = (get_key(env_path, "KEYCLOAK_USE_LOCAL") or "").strip().lower()
+    return auth_plate == "keycloak" and use_local in {"true", "1", "yes", "on"}
+
+
+def allow_keycloak_http(url: str, username: str, password: str, service: str):
+    kcadm = [
+        *keycloak_compose(),
         "exec",
         service,
         "/opt/keycloak/bin/kcadm.sh",
@@ -41,7 +68,7 @@ def allow_keycloak_http(host: str, username: str, password: str, service: str):
             "config",
             "credentials",
             "--server",
-            host,
+            url,
             "--realm",
             "master",
             "--user",
@@ -57,52 +84,111 @@ def allow_keycloak_http(host: str, username: str, password: str, service: str):
     )
 
 
-def wait_for_keycloak(host: str | None = None, retries: int = 20, delay: float = 1.0):
-    from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
+def wait_for_keycloak(url: str | None = None, retries: int = 30, delay: float = 1.0):
+    """Poll Keycloak over HTTP until it answers, from wherever the CLI is running."""
+    from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
 
-    kc_host = host or KeycloakSettings().external_url
-    typer.echo("Waiting for Keycloak to start up...")
+    kc_url = url or KeycloakSettings().url
+    typer.echo(f"Waiting for Keycloak at {kc_url} ...")
     for _ in range(retries):
         try:
-            httpx.get(f"{kc_host}/realms/master", timeout=2)
+            httpx.get(f"{kc_url}/realms/master", timeout=2)
             return
         except Exception:
             time.sleep(delay)
-    typer.echo("Keycloak did not become ready in time.", err=True)
+    typer.echo(
+        f"Keycloak did not become reachable at {kc_url} in time.\n"
+        "If the container is running, check that the host in KEYCLOAK_URL resolves "
+        "on this machine. For the default http://keycloak:8080, add it to /etc/hosts:\n"
+        "    sudo sh -c 'echo \"127.0.0.1 keycloak\" >> /etc/hosts'",
+        err=True,
+    )
     raise typer.Exit(code=1)
 
 
-@app.command()
-def kcsync(
+def start_keycloak(mode: Literal["dev", "prod"], extra: list[str] | None = None):
+    """Bring the Keycloak stack up and block until the container reports healthy."""
+    typer.echo("Starting Keycloak...")
+    subprocess.run(
+        [*keycloak_compose(mode), "up", "-d", "--wait", *(extra or [])],
+        check=True,
+    )
+    wait_for_keycloak()
+    typer.echo("Keycloak is ready.")
+
+
+def ensure_keycloak(mode: Literal["dev", "prod"]):
+    """Start Keycloak and sync its realm config, when the local stack is in use."""
+    if not uses_local_keycloak():
+        return
+    start_keycloak(mode)
+    subprocess.run(["hackplate", "keycloak", "sync", "--mode", mode], check=True)
+
+
+@app.command("up")
+def keycloak_up(
+    mode: Literal["dev", "prod"] = typer.Option(
+        "dev", "-m", "--mode", help="Compose profile: dev or prod."
+    ),
+    args: list[str] = typer.Argument(default=None),
+):
+    """Start the standalone Keycloak stack and wait for it to become healthy."""
+    env_path = Path(ROOT_DIR) / ".env"
+    if get_key(env_path, "HACKPLATE_AUTH") != "keycloak":
+        typer.echo(
+            "warning: the active auth plate is not 'keycloak' — starting Keycloak "
+            "anyway, but the app will not use it. Switch with "
+            "`hackplate setplate auth keycloak`.",
+            err=True,
+        )
+    elif not uses_local_keycloak():
+        typer.echo(
+            "warning: KEYCLOAK_USE_LOCAL is not true — the app is pointed at an "
+            "external Keycloak. Starting the local stack anyway.",
+            err=True,
+        )
+
+    start_keycloak(mode, args or [])
+
+
+@app.command("down")
+def keycloak_down(args: list[str] = typer.Argument(default=None)):
+    """Stop the standalone Keycloak stack."""
+    subprocess.run(
+        [*keycloak_compose(), "--profile", "*", "down", *(args or [])],
+        check=True,
+    )
+
+
+@app.command("sync")
+def sync(
     mode: Literal["dev", "prod"] = typer.Option(
         "dev",
         "-m",
         "--mode",
         help="Which running mode's Keycloak container to sync from.",
     ),
-    host: str | None = typer.Option(None, "-h", "--host"),
+    url: str | None = typer.Option(None, "-u", "--url"),
     realm: str | None = typer.Option(None, "-r", "--realm"),
-    username: str | None = typer.Option(None, "-u", "--username"),
+    username: str | None = typer.Option(None, "--username"),
     password: str | None = typer.Option(None, "-p", "--password"),
 ):
     """Sync Keycloak realm config to app/hackplate/plates/auth_plates/keycloak/settings.json."""
     from keycloak import KeycloakAdmin
     from keycloak.exceptions import KeycloakError
 
-    from app.hackplate.plates.auth_plates.keycloak.config import KeycloakSettings
+    from app.hackplate.plates.auth_plates.keycloak.env_settings import KeycloakSettings
 
     settings = KeycloakSettings()
 
-    kc_host = host or settings.external_url
+    kc_url = url or settings.url
     kc_realm = realm or settings.realm
     kc_username = username or settings.admin_username
     kc_password = password or settings.admin_password
     kc_use_local = settings.use_local
 
-    keycloak_service = "keycloak" if mode == "dev" else "keycloak-prod"
-
     keycloak_admin = KeycloakAdmin(
-        server_url=kc_host,
+        server_url=kc_url,
         username=kc_username,
         password=kc_password,
         realm_name=kc_realm,
@@ -110,7 +196,7 @@ def kcsync(
     )
 
     if kc_use_local:
-        allow_keycloak_http(kc_host, kc_username, kc_password, keycloak_service)
+        allow_keycloak_http(kc_url, kc_username, kc_password, keycloak_service(mode))
 
     try:
         exported: dict[str, Any] = keycloak_admin.export_realm(
@@ -131,7 +217,7 @@ def kcsync(
             "value"
         )
     except KeycloakError as e:
-        typer.echo(f"Could not sync Keycloak at {kc_host}: {e}", err=True)
+        typer.echo(f"Could not sync Keycloak at {kc_url}: {e}", err=True)
         raise typer.Exit(code=1)
     finally:
         if kc_use_local and mode == "dev":

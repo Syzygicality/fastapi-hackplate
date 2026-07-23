@@ -34,7 +34,7 @@ class KeycloakPlate(AuthPlate):
 
         KeycloakSyncMixin.keycloak_admin = KeycloakAdmin(
             connection=KeycloakOpenIDConnection(
-                server_url=self.env_settings.host,
+                server_url=self.env_settings.url,
                 realm_name=self.env_settings.realm,
                 client_id=self.env_settings.client_id,
                 client_secret_key=self.env_settings.client_secret,
@@ -50,7 +50,7 @@ class KeycloakPlate(AuthPlate):
         )
         self.read_schema = UserDocumentRead if db_name == "mongo" else UserRead
         self.keycloak_openid = KeycloakOpenID(
-            server_url=self.env_settings.host,
+            server_url=self.env_settings.url,
             realm_name=self.env_settings.realm,
             client_id=self.env_settings.client_id,
             client_secret_key=self.env_settings.client_secret,

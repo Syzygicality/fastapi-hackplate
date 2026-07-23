@@ -12,6 +12,16 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: true
     command: start-dev --import-realm
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./app/hackplate/plates/auth_plates/keycloak/settings.json:/opt/keycloak/data/import/realm.json
@@ -29,19 +39,19 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: true
     command: start --optimized --import-realm
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./app/hackplate/plates/auth_plates/keycloak/settings.json:/opt/keycloak/data/import/realm.json
-
-  api:
-    depends_on:
-      keycloak:
-        condition: service_started
-
-  api-prod:
-    depends_on:
-      keycloak-prod:
-        condition: service_started
 
 volumes:
   keycloak_data:
