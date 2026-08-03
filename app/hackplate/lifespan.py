@@ -19,16 +19,16 @@ from app.hackplate.infra.task_scheduling import (
     start_scheduler,
     shutdown_scheduler,
 )
-from app.hackplate.logging import setup_logging
+from app.hackplate.logging import register_logging
 from app.hackplate.hackplate_types import Hackplate, HackplateRequest
 from app.hackplate.toml_settings import BackendTOMLSettings
+from app.hackplate.mcp import mcp as mcp_instance
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def base_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
-    setup_logging()
     settings = BackendTOMLSettings()
     app.state.settings = settings
     config = BackendConfig(settings)
@@ -72,6 +72,8 @@ async def hackplate_lifespan(app: Hackplate) -> AsyncGenerator[None, None]:
         if app.pre_hackplate_lifespan:
             await stack.enter_async_context(app.pre_hackplate_lifespan(app))
         await stack.enter_async_context(config_lifespan(app))
+        if app.state.settings.project.mcp_server_enabled and mcp_instance is not None:
+            await stack.enter_async_context(mcp_instance.session_manager.run())
         if app.post_hackplate_lifespan:
             await stack.enter_async_context(app.post_hackplate_lifespan(app))
         yield
@@ -104,6 +106,19 @@ def register_health_ping(app: Hackplate) -> None:
         return {"message": "PONG"}
 
 
+def register_mcp(app: Hackplate) -> None:
+    from app.hackplate.toml_settings import BackendTOMLSettings
+
+    settings = BackendTOMLSettings()
+    if settings.project.mcp_server_enabled:
+        from app.hackplate.mcp import init_mcp, get_mcp
+
+        init_mcp(settings.details.name)
+        import migrations.register_tools  # noqa: F401
+
+        app.mount("/mcp", get_mcp().streamable_http_app())
+
+
 def configure(app: Hackplate, register_functions: list[Callable[[Hackplate], None]]):
     """
     Centralizes app configuration logic
@@ -112,11 +127,13 @@ def configure(app: Hackplate, register_functions: list[Callable[[Hackplate], Non
         app: initialized Hackplate object originating from main.py
         register_functions: list of functions with a single `app: Hackplate` param
     """
+    register_logging()
     register_exception_handlers(app)
     register_cors_middleware(app)
     register_rate_limiter(app)
     register_root_redirect(app)
     register_health_ping(app)
+    register_mcp(app)
 
     for fn in register_functions:
         try:

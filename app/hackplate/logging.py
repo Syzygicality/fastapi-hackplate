@@ -23,7 +23,7 @@ LOGGING_CONFIG = {
 }
 
 
-def setup_logging() -> None:
+def register_logging() -> None:
     """
     sets up global logging configuration and formatting
     """
