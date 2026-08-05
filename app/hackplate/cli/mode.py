@@ -9,7 +9,7 @@ from app.hackplate.cli.utils import ROOT_DIR
 app = typer.Typer()
 
 
-def write_mode_files(mode: Literal["safe", "fast"]) -> None:
+def write_mode_files(mode: Literal["safe", "fast", "review"]) -> None:
     """Write modes/CLAUDE.mode.md and copy the matching settings.json into .claude/.
     Shared by `hackplate setmode` and `hackplate init` — .claude/ isn't guaranteed
     to exist on a fresh clone since only .claude/settings.json is gitignored, not
@@ -40,7 +40,7 @@ def getmode():
 
 
 @app.command()
-def setmode(mode: Literal["safe", "fast"]):
+def setmode(mode: Literal["safe", "fast", "review"]):
     """Switch the Claude Code operating mode. Writes to the gitignored modes/CLAUDE.mode.md."""
     write_mode_files(mode)
     typer.echo(
