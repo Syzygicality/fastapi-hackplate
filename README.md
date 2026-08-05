@@ -135,7 +135,7 @@ Never put deployment-varying values in `pyproject.toml` or structural decisions 
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |
 | `hackplate setplate db <plate>` | Switch db plate |
-| `hackplate setmode safe\|fast` | Switch Claude Code operating mode |
+| `hackplate setmode safe\|fast\|review` | Switch Claude Code operating mode (`review` is read-only) |
 | `hackplate getmode` | Show the current Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a vertical slice under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
@@ -183,6 +183,8 @@ uv run alembic upgrade head
 
 Read `CLAUDE.md` (reasoning-friendly, supports `@import`) and `AGENTS.md` (imperative, cross-tool standard) before making changes. The `.claude/settings.json` pre-configures allowed commands and post-edit hooks.
 
-`CLAUDE.md` imports the gitignored `modes/CLAUDE.mode.md`, which re-exports either `modes/CLAUDE.safe.md` or `modes/CLAUDE.fast.md`. Switch modes with `hackplate setmode safe|fast`; `hackplate init` creates `modes/CLAUDE.mode.md` defaulting to `safe`.
+`CLAUDE.md` imports the gitignored `modes/CLAUDE.mode.md`, which re-exports `modes/CLAUDE.safe.md`, `modes/CLAUDE.fast.md`, or `modes/CLAUDE.review.md`. Switch modes with `hackplate setmode safe|fast|review`; `hackplate init` creates `modes/CLAUDE.mode.md` defaulting to `safe`.
+
+`review` mode is read-only: `.claude/settings.json` denies `Edit`, `Write`, and `NotebookEdit` outright, along with every Bash command that mutates the repo, environment, or database. It also drops the `hackplate precommit` Stop hook the other modes run. Since `hackplate setmode` is itself denied, switch back out from your own terminal rather than from inside the session.
 
 The single extension pattern: add routes in `app/main.py` via `register_routes()`, inject dependencies from `app/dependencies.py`, and scaffold new slices with `hackplate startfeature`. Don't modify `app/hackplate/` unless extending a plate interface.

@@ -1,0 +1,94 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(git status *)",
+            "Bash(git log *)",
+            "Bash(git diff *)",
+            "Bash(git show *)",
+            "Bash(git blame *)",
+            "Bash(hackplate getplates)",
+            "Bash(hackplate getmode)",
+            "Bash(hackplate check)",
+            "Bash(find . *)",
+            "Bash(grep * *)"
+        ],
+        "ask": [],
+        "deny": [
+            "Edit",
+            "Write",
+            "NotebookEdit",
+            "Read(./.env)",
+            "Bash(git add *)",
+            "Bash(git commit *)",
+            "Bash(git push *)",
+            "Bash(git checkout *)",
+            "Bash(git reset *)",
+            "Bash(git restore *)",
+            "Bash(git clean *)",
+            "Bash(git rebase *)",
+            "Bash(git merge *)",
+            "Bash(git stash *)",
+            "Bash(uv add *)",
+            "Bash(uv remove *)",
+            "Bash(uv sync *)",
+            "Bash(uv pip *)",
+            "Bash(pip *)",
+            "Bash(hackplate init *)",
+            "Bash(hackplate run *)",
+            "Bash(hackplate up *)",
+            "Bash(hackplate down *)",
+            "Bash(hackplate clean *)",
+            "Bash(hackplate regenkey *)",
+            "Bash(hackplate precommit *)",
+            "Bash(hackplate setmode *)",
+            "Bash(hackplate setplate *)",
+            "Bash(hackplate startfeature *)",
+            "Bash(hackplate dropfeature *)",
+            "Bash(hackplate keycloak *)",
+            "Bash(uv run alembic *)",
+            "Bash(uv run pytest *)",
+            "Bash(pre-commit *)",
+            "Bash(docker *)",
+            "Bash(rm *)",
+            "Bash(mv *)",
+            "Bash(cp *)",
+            "Bash(mkdir *)",
+            "Bash(touch *)",
+            "Bash(chmod *)",
+            "Bash(tee *)"
+        ]
+    },
+    "hooks": {
+        "UserPromptSubmit": [
+            {
+                "matcher": ".*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "echo \"$(cat modes/CLAUDE.mode.md) in use. Read-only: do not modify files or run write commands.\""
+                    }
+                ]
+            }
+        ]
+    },
+    "includeGitInstructions": false,
+    "env": {
+        "ENVIRONMENT": "DEVELOPMENT",
+        "PYTHONPATH": "."
+    },
+    "companyAnnouncements": [
+        "Read CLAUDE.md and AGENTS.md before making changes."
+    ],
+    "spinnerTipsOverride": {
+        "tips": [
+            "Review mode is read-only — report changes instead of applying them",
+            "Use `hackplate setmode safe|fast` (outside this session) to regain write access",
+            "Use `hackplate getplates` to see the active auth and db plates",
+            "Read app/hackplate/ to understand framework internals before critiquing app/ code"
+        ]
+    },
+    "attribution": {
+        "commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+        "pr": ""
+    }
+}

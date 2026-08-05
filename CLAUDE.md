@@ -38,7 +38,7 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `hackplate getplates` | Show active auth and db plates |
 | `hackplate setplate auth <plate>` | Switch auth plate |
 | `hackplate setplate db <plate>` | Switch db plate |
-| `hackplate setmode safe\|fast` | Switch Claude Code operating mode |
+| `hackplate setmode safe\|fast\|review` | Switch Claude Code operating mode (`review` is read-only) |
 | `hackplate getmode` | Show the current Claude Code operating mode |
 | `hackplate startfeature <name>` | Scaffold a new feature directory under `app/` |
 | `hackplate dropfeature <name>` | Remove a feature directory |
