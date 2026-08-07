@@ -46,7 +46,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "echo \"$(cat modes/CLAUDE.mode.md) in use.\""
+                        "command": "echo \"$(cat modes/behavior/CLAUDE.mode.md) in use.\""
                     }
                 ]
             }

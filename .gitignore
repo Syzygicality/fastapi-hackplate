@@ -136,7 +136,7 @@ celerybeat.pid
 
 # Hackplate
 .hackplate_init
-modes/CLAUDE.mode.md
+modes/behavior/CLAUDE.mode.md
 .claude/settings.json
 
 # Environments

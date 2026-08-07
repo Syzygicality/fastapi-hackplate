@@ -10,4 +10,4 @@
 
 - [ ] `uv run pytest` passes
 - [ ] `hackplate precommit` passes
-- [ ] Docs updated (`README.md` / `CLAUDE.md`) if behaviour changed
+- [ ] Docs updated (`README.hackplate.md` / `modes/CLAUDE.hackplate.md`) if behaviour changed

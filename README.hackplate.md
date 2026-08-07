@@ -186,6 +186,6 @@ uv run alembic upgrade head
 
 Read `CLAUDE.md` (reasoning-friendly, supports `@import`) and `AGENTS.md` (imperative, cross-tool standard) before making changes. The `.claude/settings.json` pre-configures allowed commands and post-edit hooks.
 
-`CLAUDE.md` imports the gitignored `modes/CLAUDE.mode.md`, which re-exports either `modes/CLAUDE.safe.md` or `modes/CLAUDE.fast.md`. Switch modes with `hackplate setmode safe|fast`; `hackplate init` creates `modes/CLAUDE.mode.md` defaulting to `safe`.
+`CLAUDE.md` is yours to edit — it holds nothing but imports: `modes/CLAUDE.hackplate.md` (the framework docs above) and the gitignored `modes/behavior/CLAUDE.mode.md`, which re-exports one of `modes/behavior/CLAUDE.{safe,fast,review}.md`. Switch modes with `hackplate setmode safe|fast|review`; that also copies the matching `modes/settings/settings.<mode>.json` to `.claude/settings.json`. `hackplate init` writes both, defaulting to `safe`.
 
 The single extension pattern: add routes in `app/main.py` via `register_routes()`, inject dependencies from `app/dependencies.py`, and scaffold new slices with `hackplate startfeature`. Don't modify `app/hackplate/` unless extending a plate interface.
