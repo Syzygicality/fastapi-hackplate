@@ -40,7 +40,7 @@ Fill in any remaining values in `.env` (DB URLs, auth credentials) before runnin
 | `hackplate setplate db <plate>` | Switch db plate |
 | `hackplate setmode safe\|fast\|review` | Switch Claude Code operating mode (`review` is read-only) |
 | `hackplate getmode` | Show the current Claude Code operating mode |
-| `hackplate startfeature <name>` | Scaffold a new feature directory under `app/` |
+| `hackplate startfeature <name>` | Scaffold a new feature directory under `app/` (`-t`\|`--with-tools` also adds `tools.py`) |
 | `hackplate dropfeature <name>` | Remove a feature directory |
 | `hackplate keycloak up` | Start the standalone Keycloak stack (`-m dev`\|`prod`) and wait until it is healthy |
 | `hackplate keycloak down` | Stop the standalone Keycloak stack |
@@ -126,9 +126,14 @@ The default `User` model lives at `app/hackplate/user/models.py`. To customize, 
 
 ```bash
 hackplate startfeature <name>
+hackplate startfeature <name> --with-tools   # also scaffold MCP tools
 ```
 
 Creates `app/<name>/` with `routes.py`, `schemas.py`, `crud.py`, `models.py`, `__init__.py` and registers the model in `migrations/register_models.py`.
+
+With `--with-tools` (`-t`) it also creates `app/<name>/tools.py` and registers it in `migrations/register_tools.py`. That registry is imported at startup only when `mcp_server_enabled = true` in `[tool.hackplate]`, after the MCP server is initialized — so `tools.py` can call `get_mcp()` at module level and hang tools off it with `@mcp.tool()`. Tools must be imported in `migrations/register_tools.py` to be exposed on `/mcp`, the same way models must be imported in `register_models.py`.
+
+`hackplate dropfeature <name>` removes the directory along with both registry imports.
 
 Then in `app/main.py`:
 
